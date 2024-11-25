@@ -86,10 +86,81 @@ fisopfs_read(const char *path,
 	return size;
 }
 
+int fisopfs_write_buf(const char *path, struct fuse_bufvec *buf, off_t offset, struct fuse_file_info *fi) {
+    printf("[debug] fisopfs_write_buf\n");
+    return 0;
+}
+
+int fisopfs_read_buf(const char *path, struct fuse_bufvec **bufp, size_t size, off_t offset, struct fuse_file_info *fi) {
+    printf("[debug] fisopfs_read_buf\n");
+    return 0;
+}
+
+int fisopfs_flock(const char *path, struct fuse_file_info *fi, int operation) {
+    printf("[debug] fisopfs_flock\n");
+    return 0;
+}
+
+int fisopfs_fallocate(const char *path, int mode, off_t offset, off_t length, struct fuse_file_info *fi) {
+    printf("[debug] fisopfs_fallocate\n");
+    return 0;
+}
+
+void fisopfs_destroy(void *private_data) {
+    printf("[debug] fisopfs_destroy\n");
+}
+
+int fisopfs_flush(const char *path, struct fuse_file_info *fi) {
+    printf("[debug] fisopfs_flush\n");
+    return 0;
+}
+
+void *fisopfs_init(struct fuse_conn_info *conn, struct fuse_config *cfg) {
+    printf("[debug] fisopfs_init\n");
+    return NULL;
+}
+
+int fisopfs_link(const char *oldpath, const char *newpath) {
+    printf("[debug] fisopfs_link\n");
+    return 0;    
+}
+
+int fisopfs_mknod(const char *path, mode_t mode, dev_t dev) {
+    printf("[debug] fisopfs_mknod\n");
+    return 0;
+}
+
+int fisopfs_readlink(const char *path, char *buf, size_t size) {
+    printf("[debug] fisopfs_readlink\n");
+    return 0;
+}
+
+int fisopfs_release(const char *path, struct fuse_file_info *fi) {
+    printf("[debug] fisopfs_release\n");
+    return 0;
+}
+
+int fisopfs_symlink(const char *target, const char *linkpath) {
+    printf("[debug] fisopfs_symlink\n");
+    return 0;
+}
+
 static struct fuse_operations operations = {
 	.getattr = fisopfs_getattr,
 	.readdir = fisopfs_readdir,
 	.read = fisopfs_read,
+	.write_buf = fisopfs_write_buf,
+    	.read_buf = fisopfs_read_buf,
+    	.flock = fisopfs_flock,
+    	.fallocate = fisopfs_fallocate,
+    	.destroy = fisopfs_destroy,
+    	.flush = fisopfs_flush,
+    	.init = fisopfs_init,
+    	.link = fisopfs_link,
+    	.mknod = fisopfs_mknod,
+    	.readlink = fisopfs_readlink,
+    	.release = fisopfs_release,
+   	.symlink = fisopfs_symlink
 };
 
 int
