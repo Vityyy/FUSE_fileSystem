@@ -438,7 +438,6 @@ static struct fuse_operations operations = {
 	.mkdir = fisopfs_mkdir,            //
 	.rmdir = fisopfs_rmdir,            // ?
 	.truncate = fisopfs_truncate,      //
-	.statfs = fisopfs_statfs,          // ?
 	.setxattr = fisopfs_setxattr,      // ?
 	.getxattr = fisopfs_getxattr,      //
 	.opendir = fisopfs_opendir,        //
