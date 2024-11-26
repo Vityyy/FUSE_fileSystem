@@ -427,48 +427,34 @@ fisopfs_symlink(const char *target, const char *linkpath)
 	return 0;
 }
 
-static struct fuse_operations operations = { .getattr = fisopfs_getattr,
-	                                     .readdir = fisopfs_readdir,
-	                                     .read = fisopfs_read,
-	                                     .access = fisopfs_access,
-	                                     .open = fisopfs_open,
-	                                     .write = fisopfs_write,
-	                                     .create = fisopfs_create,
-	                                     .unlink = fisopfs_unlink,
-	                                     .mkdir = fisopfs_mkdir,
-	                                     .rmdir = fisopfs_rmdir,
-	                                     .rename = fisopfs_rename,
-	                                     .truncate = fisopfs_truncate,
-	                                     .chmod = fisopfs_chmod,
-	                                     .chown = fisopfs_chown,
-	                                     .statfs = fisopfs_statfs,
-	                                     .fsync = fisopfs_fsync,
-	                                     .setxattr = fisopfs_setxattr,
-	                                     .getxattr = fisopfs_getxattr,
-	                                     .listxattr = fisopfs_listxattr,
-	                                     .removexattr = fisopfs_removexattr,
-	                                     .opendir = fisopfs_opendir,
-	                                     .releasedir = fisopfs_releasedir,
-	                                     .fsyncdir = fisopfs_fsyncdir,
-	                                     .ftruncate = fisopfs_ftruncate,
-	                                     .fgetattr = fisopfs_fgetattr,
-	                                     .lock = fisopfs_lock,
-	                                     .utimens = fisopfs_utimens,
-	                                     .bmap = fisopfs_bmap,
-	                                     .ioctl = fisopfs_ioctl,
-	                                     .poll = fisopfs_poll,
-	                                     .write_buf = fisopfs_write_buf,
-	                                     .read_buf = fisopfs_read_buf,
-	                                     .flock = fisopfs_flock,
-	                                     .fallocate = fisopfs_fallocate,
-	                                     .destroy = fisopfs_destroy,
-	                                     .flush = fisopfs_flush,
-	                                     .init = fisopfs_init,
-	                                     .link = fisopfs_link,
-	                                     .mknod = fisopfs_mknod,
-	                                     .readlink = fisopfs_readlink,
-	                                     .release = fisopfs_release,
-	                                     .symlink = fisopfs_symlink };
+static struct fuse_operations operations = {
+	.getattr = fisopfs_getattr,        //
+	.readdir = fisopfs_readdir,        //
+	.read = fisopfs_read,              // ?
+	.access = fisopfs_access,          //
+	.open = fisopfs_open,              //
+	.write = fisopfs_write,            // ?
+	.create = fisopfs_create,          //
+	.mkdir = fisopfs_mkdir,            //
+	.rmdir = fisopfs_rmdir,            // ?
+	.truncate = fisopfs_truncate,      //
+	.statfs = fisopfs_statfs,          // ?
+	.setxattr = fisopfs_setxattr,      // ?
+	.getxattr = fisopfs_getxattr,      //
+	.opendir = fisopfs_opendir,        //
+	.releasedir = fisopfs_releasedir,  //
+	.ftruncate = fisopfs_ftruncate,    // ?
+	.fgetattr = fisopfs_fgetattr,      //
+	.lock = fisopfs_lock,              //
+	.write_buf = fisopfs_write_buf,    //
+	.read_buf = fisopfs_read_buf,      //
+	.flock = fisopfs_flock,            // ?
+	.fallocate = fisopfs_fallocate,    // ?
+	.destroy = fisopfs_destroy,        //
+	.flush = fisopfs_flush,            //
+	.init = fisopfs_init,              //
+	.release = fisopfs_release         //
+};
 
 int
 main(int argc, char *argv[])
