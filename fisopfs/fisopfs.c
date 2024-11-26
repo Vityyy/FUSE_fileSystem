@@ -1,6 +1,7 @@
 #define FUSE_USE_VERSION 30
 
 #include <fuse.h>
+#include <fuse/fuse_common.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -168,7 +169,7 @@ fisopfs_truncate(const char *path, off_t length)
 
 /** Change the permission bits of a file */
 int
-fisopfs_chmod(const char *, mode_t)
+fisopfs_chmod(const char *path, mode_t mode)
 {
 	return printf("fisopfs_chmod");
 }
@@ -274,24 +275,24 @@ fisopfs_lock(const char *path, struct fuse_file_info *fi, int cmd, struct flock 
 
 /** Change the access and modification times of a file with nanosecond resolution */
 int
-fisopfs_utimens(const char *, const struct timespec tv[2])
+fisopfs_utimens(const char *path, const struct timespec tv[2])
 {
 	return printf("[debug] fisopfs_timens");
 }
 
 /** Map block index within file to block index within device */
 int
-fisopfs_bmap(const char *, size_t blocksize, uint64_t *idx)
+fisopfs_bmap(const char *path, size_t blocksize, uint64_t *idx)
 {
 	return printf("[debug] fisopfs_lock");
 }
 
 /** Ioctl */
 int
-fisopfs_ioctl(const char *,
+fisopfs_ioctl(const char *path,
               int cmd,
               void *arg,
-              struct fuse_file_info *,
+              struct fuse_file_info *info,
               unsigned int flags,
               void *data)
 {
@@ -300,8 +301,8 @@ fisopfs_ioctl(const char *,
 
 /** Poll for IO readiness events */
 int
-fisopfs_poll(const char *,
-             struct fuse_file_info *,
+fisopfs_poll(const char *path,
+             struct fuse_file_info *info,
              struct fuse_pollhandle *ph,
              unsigned *reventsp)
 {
@@ -361,8 +362,11 @@ fisopfs_flush(const char *path, struct fuse_file_info *fi)
 	return 0;
 }
 
+/**
+ * Initialize filesystem
+ */
 void *
-fisopfs_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
+fisopfs_init(struct fuse_conn_info *conn)
 {
 	printf("[debug] fisopfs_init\n");
 	return NULL;
