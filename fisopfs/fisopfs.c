@@ -438,8 +438,8 @@ fisopfs_read_buf(const char *path,
 
 static struct fuse_operations operations = {
 	.getattr = fisopfs_getattr,  // +
-	// .readlink = fisopfs_readlink,        // -
-	// .mknod = fisopfs_mknod,              // -
+	// .readlink = fisopfs_readlink,     	// -
+	// .mknod = fisopfs_mknod,           	// -
 	.mkdir = fisopfs_mkdir,    // +
 	.unlink = fisopfs_unlink,  // +
 	.rmdir = fisopfs_rmdir,    // ?
@@ -448,7 +448,7 @@ static struct fuse_operations operations = {
 	// .link = fisopfs_link,                // *
 	// .chmod = fisopfs_chmod,              // *
 	// .chown = fisopfs_chown,              // *
-	.truncate = fisopfs_truncate,  // ?
+	.truncate = fisopfs_truncate,  // +
 	.open = fisopfs_open,          // +
 	.read = fisopfs_read,          // ?
 	.write = fisopfs_write,        // ?
