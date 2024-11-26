@@ -93,14 +93,16 @@ fisopfs_read(const char *path,
 int
 fisopfs_access(const char *pathname, const int mode)
 {
-	return printf("fisopfs_access\n");
+	printf("fisopfs_access\n");
+	return 0;
 }
 
 /** File open operation **/
 int
 fisopfs_open(const char *pathname, struct fuse_file_info *mode)
 {
-	return printf("fisopfs_open\n");
+	printf("fisopfs_open\n");
+	return 0;
 }
 
 /** Write data to an open file */
@@ -111,14 +113,8 @@ fisopfs_write(const char *path,
               const off_t offset,
               struct fuse_file_info *file_info)
 {
-	return printf(
-	        "[debug] fisopfs_write - path: %s, buff: %s, n_bytes: %lu, "
-	        "offset: %li, file_info: %p",
-	        path,
-	        buff,
-	        n_bytes,
-	        offset,
-	        file_info);
+	printf("fisopfs_write");
+	return 0;
 }
 
 /**
@@ -129,56 +125,64 @@ fisopfs_create(const char *pathname,
                const mode_t mode,
                struct fuse_file_info *file_info)
 {
-	return printf("fisopfs_create\n");
+	printf("fisopfs_create\n");
+	return 0;
 }
 
 /** Remove a file */
 int
 fisopfs_unlink(const char *pathname)
 {
-	return printf("fisopfs_unlink");
+	printf("fisopfs_unlink");
+	return 0;
 }
 
 /** Create a directory */
 int
 fisopfs_mkdir(const char *pathname, const mode_t mode)
 {
-	return printf("fisopfs_mkdir\n");
+	printf("fisopfs_mkdir\n");
+	return 0;
 }
 
 /** Remove a directory */
 int
 fisopfs_rmdir(const char *pathname)
 {
-	return printf("fisopfs_rmdir\n");
+	printf("fisopfs_rmdir\n");
+	return 0;
 }
 
 /** Rename a file */
 int
 fisopfs_rename(const char *oldpath, const char *newpath)
 {
-	return printf("fisopfs_rename");
+	printf("fisopfs_rename");
+	return 0;
 }
 
 /** Change the size of a file */
 int
 fisopfs_truncate(const char *path, off_t length)
 {
-	return printf("fisopfs_truncate");
+	printf("fisopfs_truncate");
+	return 0;
 }
 
 /** Change the permission bits of a file */
 int
 fisopfs_chmod(const char *path, mode_t mode)
 {
-	return printf("fisopfs_chmod");
+	printf("fisopfs_chmod");
+	return 0;
 }
 
 /** Change the owner and group of a file */
 int
 fisopfs_chown(const char *pathname, uid_t owner, gid_t group)
 {
-	return printf("fisopfs_chown");
+	printf("fisopfs_chown");
+	return 0;
 }
 
 /** Get file system statistics
@@ -188,7 +192,8 @@ fisopfs_chown(const char *pathname, uid_t owner, gid_t group)
 int
 fisopfs_statfs(const char *path, struct statvfs *buf)
 {
-	return printf("fisopfs_statfs");
+	printf("fisopfs_statfs");
+	return 0;
 }
 
 /** Synchronize file contents
@@ -196,7 +201,8 @@ fisopfs_statfs(const char *path, struct statvfs *buf)
 int
 fisopfs_fsync(const char *path, int isdatasync, struct fuse_file_info *info)
 {
-	return printf("fisopfs_fsync");
+	printf("fisopfs_fsync");
+	return 0;
 }
 
 /** Set extended attributes */
@@ -207,84 +213,96 @@ fisopfs_setxattr(const char *path,
                  size_t size,
                  int flags)
 {
-	return printf("fisopfs_setxattr");
+	printf("fisopfs_setxattr");
+	return 0;
 }
 
 /** Get extended attributes */
 int
 fisopfs_getxattr(const char *path, const char *name, char *value, size_t size)
 {
-	return printf("[debug] fisopfs_getxattr");
+	printf("[debug] fisopfs_getxattr");
+	return 0;
 }
 
 /** List extended attributes */
 int
 fisopfs_listxattr(const char *path, char *list, size_t size)
 {
-	return printf("[debug] fisopfs_listxattr");
+	printf("[debug] fisopfs_listxattr");
+	return 0;
 }
 
 /** Remove extended attributes */
 int
 fisopfs_removexattr(const char *path, const char *name)
 {
-	return printf("[debug] fisopfs_removexattr");
+	printf("[debug] fisopfs_removexattr");
+	return 0;
 }
 
 /** Open directory */
 int
 fisopfs_opendir(const char *path, struct fuse_file_info *fi)
 {
-	return printf("[debug] fisopfs_opendir");
+	printf("[debug] fisopfs_opendir");
+	return 0;
 }
 
 /** Release directory */
 int
 fisopfs_releasedir(const char *path, struct fuse_file_info *fi)
 {
-	return printf("[debug] fisopfs_releasedir");
+	printf("[debug] fisopfs_releasedir");
+	return 0;
 }
 
 /** Synchronize directory contents */
 int
 fisopfs_fsyncdir(const char *path, int datasync, struct fuse_file_info *fi)
 {
-	return printf("[debug] fisopfs_fsyncdir");
+	printf("[debug] fisopfs_fsyncdir");
+	return 0;
 }
 
 /** Change the size of an open file */
 int
 fisopfs_ftruncate(const char *path, off_t size, struct fuse_file_info *fi)
 {
-	return printf("[debug] fisopfs_ftruncate");
+	printf("[debug] fisopfs_ftruncate");
+	return 0;
 }
 
 /** Get attributes from an open file */
 int
 fisopfs_fgetattr(const char *path, struct stat *buf, struct fuse_file_info *fi)
 {
-	return printf("[debug] fisopfs_fgetattr");
+	printf("[debug] fisopfs_fgetattr");
+	return 0;
 }
 
 /** Perform POSIX file locking operation */
 int
 fisopfs_lock(const char *path, struct fuse_file_info *fi, int cmd, struct flock *lock)
 {
-	return printf("[debug] fisopfs_lock");
+	printf("[debug] fisopfs_lock");
+	return 0;
 }
 
 /** Change the access and modification times of a file with nanosecond resolution */
 int
 fisopfs_utimens(const char *path, const struct timespec tv[2])
 {
-	return printf("[debug] fisopfs_timens");
+	printf("[debug] fisopfs_timens");
+	return 0;
 }
 
 /** Map block index within file to block index within device */
 int
 fisopfs_bmap(const char *path, size_t blocksize, uint64_t *idx)
 {
-	return printf("[debug] fisopfs_lock");
+	printf("[debug] fisopfs_lock");
+	return 0;
 }
 
 /** Ioctl */
@@ -296,7 +314,8 @@ fisopfs_ioctl(const char *path,
               unsigned int flags,
               void *data)
 {
-	return printf("[debug] fisopfs_ioctl");
+	printf("[debug] fisopfs_ioctl");
+	return 0;
 }
 
 /** Poll for IO readiness events */
@@ -306,7 +325,8 @@ fisopfs_poll(const char *path,
              struct fuse_pollhandle *ph,
              unsigned *reventsp)
 {
-	return printf("[debug] fisopfs_poll");
+	printf("[debug] fisopfs_poll");
+	return 0;
 }
 
 int
