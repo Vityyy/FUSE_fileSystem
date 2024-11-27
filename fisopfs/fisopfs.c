@@ -20,6 +20,13 @@ fisopfs_getattr(const char *path, struct stat *st)
 {
 	printf("[debug] fisopfs_getattr - path: %s\n", path);
 
+
+	// "/" == 0
+	// "/hola"
+
+	// /hola/
+	// /hola/fisop
+
 	if (strcmp(path, "/") == 0) {
 		st->st_uid = 1717;
 		st->st_mode = __S_IFDIR | 0755;
@@ -287,19 +294,24 @@ fisopfs_releasedir(const char *path, struct fuse_file_info *fi)
 // 	return 0;
 // }
 
+extern void *fs_init(const char *filepath);
+
 /* Initialize filesystem */
 void *
 fisopfs_init(struct fuse_conn_info *conn)
 {
 	printf("[debug] fisopfs_init\n");
-	return NULL;
+	return fs_init(filedisk);
 }
+
+extern void *fs_destroy(const char *filepath);
 
 /* Clean up filesystem */
 void
 fisopfs_destroy(void *private_data)
 {
 	printf("[debug] fisopfs_destroy\n");
+	fs_destroy(filedisk);
 }
 
 /* Check file access permissions */
@@ -464,8 +476,8 @@ static struct fuse_operations operations = {
 	.readdir = fisopfs_readdir,        // +
 	.releasedir = fisopfs_releasedir,  // +
 	// .fsyncdir = fisopfs_fsyncdir,        // -
-	.init = fisopfs_init,        // +
-	.destroy = fisopfs_destroy,  // +
+	.init = fisopfs_init,        // 0
+	.destroy = fisopfs_destroy,  // 0
 	.access = fisopfs_access,    // +
 	.create = fisopfs_create,    // +
 	// .ftruncate = fisopfs_ftruncate,      // -
@@ -487,14 +499,12 @@ main(int argc, char *argv[])
 	for (int i = 1; i < argc - 1; i++) {
 		if (strcmp(argv[i], "--filedisk") == 0) {
 			filedisk = argv[i + 1];
-
 			// We remove the argument so that fuse doesn't use our
 			// argument or name as folder.
 			// Equivalent to a pop.
 			for (int j = i; j < argc - 1; j++) {
 				argv[j] = argv[j + 2];
 			}
-
 			argc = argc - 2;
 			break;
 		}
