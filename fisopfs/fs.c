@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <string.h>
 
 typedef union BlockData BlockData;
 typedef struct Inode Inode;
@@ -39,10 +40,10 @@ void
 newFileSystem(void)
 {
 	firstFree = 0;
-	inodes = { 0 };
-	blocks = { 0 };
+	memset(inodes, 0, sizeof(inodes));
+    memset(blocks, 0, sizeof(blocks));
 
-	inodes[0] = (Inode) { .st = { .st_mode = S_IFDIR | 0755, .st_nlink = 1 },
+	inodes[0] = (Inode) { .st = { .st_mode = __S_IFDIR | 0755, .st_nlink = 1 },
 		              .block = 0,
 		              .parent = -1 };
 
@@ -54,7 +55,7 @@ newFileSystem(void)
 
 	firstFree = 1;
 
-	for (int i = 1; i < 1023; i++) {
+	for (ssize_t i = 1; i < 1023; i++) {
 		inodes[i] = (Inode) { .block = -1, .parent = -1 };
 		blocks[i] = (Block) { .nextFree = i + 1 };
 	}
@@ -114,5 +115,5 @@ fisopfs_destroy(const char *const restrict filepath)
 static int
 fs_getattr(const char *path, struct stat *st)
 {
-	st->st_mode = S_IFDIR | 0755;
+	st->st_mode = __S_IFDIR | 0755;
 }
