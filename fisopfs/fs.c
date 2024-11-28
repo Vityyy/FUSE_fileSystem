@@ -41,27 +41,26 @@ newFileSystem(void)
 {
 	firstFree = 0;
 	memset(inodes, 0, sizeof(inodes));
-    memset(blocks, 0, sizeof(blocks));
+	memset(blocks, 0, sizeof(blocks));
 
-	inodes[0] = (Inode) { .st = { .st_mode = __S_IFDIR | 0755, .st_nlink = 1 },
-		              .block = 0,
-		              .parent = -1 };
+	inodes[0] = (Inode){ .st = { .st_mode = __S_IFDIR | 0755, .st_nlink = 1 },
+		             .block = 0,
+		             .parent = -1 };
 
-	blocks[0] = (Block) {
-		.nextFree = -1,
-		.data = { .dentries = { { .name = ".", .inode = 0 },
-		                        { .name = "..", .inode = -1 } } }
-	};
+	blocks[0] =
+	        (Block){ .nextFree = -1,
+		         .data = { .dentries = { { .name = ".", .inode = 0 },
+		                                 { .name = "..", .inode = -1 } } } };
 
 	firstFree = 1;
 
 	for (ssize_t i = 1; i < 1023; i++) {
-		inodes[i] = (Inode) { .block = -1, .parent = -1 };
-		blocks[i] = (Block) { .nextFree = i + 1 };
+		inodes[i] = (Inode){ .block = -1, .parent = -1 };
+		blocks[i] = (Block){ .nextFree = i + 1 };
 	}
 
-	inodes[1023] = (Inode) { .block = -1, .parent = -1 };
-	blocks[1023] = (Block) { .nextFree = 1 };
+	inodes[1023] = (Inode){ .block = -1, .parent = -1 };
+	blocks[1023] = (Block){ .nextFree = 1 };
 }
 
 void *
