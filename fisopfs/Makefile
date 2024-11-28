@@ -8,9 +8,15 @@ LDLIBS := $(shell pkg-config fuse --cflags --libs)
 # Name for the filesystem!
 FS_NAME := fisopfs
 
+# Define source files
+SRC_FILES := fisopfs.c fs.c
+
 all: build
 	
 build: $(FS_NAME)
+
+$(FS_NAME): $(SRC_FILES)
+	$(CC) $(CFLAGS) -o $(FS_NAME) $(SRC_FILES) $(LDLIBS)
 
 format: .clang-files .clang-format
 	xargs -r clang-format -i <$<
