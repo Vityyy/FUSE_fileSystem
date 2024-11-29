@@ -238,13 +238,38 @@ fs_write(const char *path, const char *buf, size_t size, off_t offset)
 	return 0;
 }
 
+static char last_path[248];
+
 /* Read directory */
 int
-fs_readdir(const char *path, void *buffer, off_t offset)
+fs_readdir(const char *path, void *buffer)
 {
-	// Completar
+	static ssize_t last_idx = 0;
 
-	return 0;
+	const ssize_t inode_idx = get_inode_idx_from_path(path);
+
+	if (inode_idx == -1)
+		return -1;
+
+	if (strcmp(path, last_path) != 0)
+		last_idx = 0;
+
+	while (last_idx < MAX_DENTRIES) {
+		if (blocks[inodes[inode_idx].block_idx].data.dentries[last_idx].inode_idx ==
+		    -1) {
+			++last_idx;
+			continue;
+		}
+
+		strcpy(buffer,
+		       blocks[inodes[inode_idx].block_idx]
+		               .data.dentries[last_idx]
+		               .name);
+		++last_idx;
+		return 1;
+	}
+
+	return last_idx = 0;
 }
 
 /*

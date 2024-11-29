@@ -128,7 +128,7 @@ fisopfs_write(const char *path,
 	return 0;
 }
 
-extern int fs_readdir(const char *path, void *buffer, off_t offset);
+extern int fs_readdir(const char *path, void *buffer);
 /* Read directory */
 static int
 fisopfs_readdir(const char *path,
@@ -139,17 +139,11 @@ fisopfs_readdir(const char *path,
 {
 	printf("[debug] fisopfs_readdir - path: %s\n", path);
 
-	// Los directorios '.' y '..'
-	filler(buffer, ".", NULL, 0);
-	filler(buffer, "..", NULL, 0);
+	char entry_name[248] = { 0 };
+	while (fs_readdir(path, entry_name) > 0)
+		filler(buffer, entry_name, NULL, 0);
 
-	// Si nos preguntan por el directorio raiz, solo tenemos un archivo
-	if (strcmp(path, "/") == 0) {
-		filler(buffer, "fisop", NULL, 0);
-		return 0;
-	}
-
-	return -ENOENT;
+	return 0;
 }
 
 extern void *fs_init(const char *filepath);
