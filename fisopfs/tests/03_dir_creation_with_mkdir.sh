@@ -4,7 +4,7 @@
 echo -n "03_dir_creation_with_mkdir - "
 
 
-cd prueba
+cd ../prueba
 
 mkdir new_dir
 

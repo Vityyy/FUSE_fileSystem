@@ -17,6 +17,17 @@ typedef struct dentry dentry_t;
 typedef union block_data block_data_t;
 typedef struct block block_t;
 
+static char *
+strdup(const char *const restrict __s)
+{
+	const size_t len = strlen(__s) + 1;
+	char *copy = malloc(len);
+	if (copy)
+		memcpy(copy, __s, len);
+
+	return copy;
+}
+
 struct inode {
 	struct stat st;
 	ssize_t block_idx;   // in blocks table
@@ -147,7 +158,7 @@ fs_mkdir(const char *path)
 	if (parent_idx == -1)
 		return -1;
 
-	if (!S_IFDIR(inodes[parent_idx].st.st_mode))
+	if (!S_ISDIR(inodes[parent_idx].st.st_mode))
 		return -1;
 
 	const ssize_t free_dentry_idx =
@@ -168,7 +179,7 @@ fs_mkdir(const char *path)
 
 	inodes[free_inode_idx] =
 	        (inode_t) { .free = false,
-		            .st = { .st_mode = __S_IFDIR | 0755, .st_nlink = 1 },
+		            .st = { .st_mode = S_IFDIR | 0777, .st_nlink = 1 },
 		            .block_idx = free_block_idx,
 		            .parent_idx = parent_idx };
 
@@ -179,6 +190,10 @@ fs_mkdir(const char *path)
 		                                    .inode_idx = free_inode_idx },
 		                                  { .name = "..",
 		                                    .inode_idx = parent_idx } } } };
+
+	for (ssize_t i = 2; i < MAX_DENTRIES; i++)
+		blocks[free_block_idx].data.dentries[i] =
+		        (dentry_t) { .inode_idx = -1 };
 
 	blocks[inodes[parent_idx].block_idx].data.dentries[free_dentry_idx] =
 	        (dentry_t) { .inode_idx = free_inode_idx };
@@ -244,7 +259,7 @@ static char last_path[248];
 int
 fs_readdir(const char *path, void *buffer)
 {
-	static ssize_t last_idx = 0;
+	static ssize_t last_idx = 2;
 
 	const ssize_t inode_idx = get_inode_idx_from_path(path);
 
@@ -252,7 +267,9 @@ fs_readdir(const char *path, void *buffer)
 		return -1;
 
 	if (strcmp(path, last_path) != 0)
-		last_idx = 0;
+		last_idx = 2;
+
+	strcpy(last_path, path);
 
 	while (last_idx < MAX_DENTRIES) {
 		if (blocks[inodes[inode_idx].block_idx].data.dentries[last_idx].inode_idx ==
@@ -265,11 +282,12 @@ fs_readdir(const char *path, void *buffer)
 		       blocks[inodes[inode_idx].block_idx]
 		               .data.dentries[last_idx]
 		               .name);
-		++last_idx;
+		last_idx = last_idx + 1;
 		return 1;
 	}
 
-	return last_idx = 0;
+	last_idx = 2;
+	return 0;
 }
 
 /*
@@ -282,7 +300,7 @@ newFileSystem(void)
 	memset(blocks, 0, sizeof(blocks));
 	inodes[0] =
 	        (inode_t) { .free = false,
-		            .st = { .st_mode = __S_IFDIR | 0755, .st_nlink = 1 },
+		            .st = { .st_mode = S_IFDIR | 0777, .st_nlink = 1 },
 		            .block_idx = 0,
 		            .parent_idx = -1 };
 
@@ -291,6 +309,10 @@ newFileSystem(void)
 		.data = { .dentries = { { .name = ".", .inode_idx = 0 },
 		                        { .name = "..", .inode_idx = -2 } } }
 	};
+
+	for (int i = 2; i < MAX_DENTRIES; i++)
+		blocks[0].data.dentries[i] = (dentry_t) { .inode_idx = -1 };
+
 	for (ssize_t i = 1; i < MAX_FILES; i++) {
 		inodes[i] = (inode_t) { .free = true,
 			                .block_idx = -1,
@@ -308,7 +330,6 @@ fs_init(const char *const restrict filepath)
 		newFileSystem();
 		return NULL;
 	}
-
 
 	ssize_t err = read(fd, inodes, sizeof(inodes));
 	if (err == -1) {

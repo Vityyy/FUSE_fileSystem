@@ -4,7 +4,7 @@
 echo -n "01_file_creation_with_touch - "
 
 
-cd prueba
+cd ../prueba
 
 touch new_file
 

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS := -ggdb3 -O2 -Wall -std=c11
+CFLAGS := -O0 -g -Wall -std=c11
 CFLAGS += -Wno-unused-function -Wvla
 
 # Flags for FUSE

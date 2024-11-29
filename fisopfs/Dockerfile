@@ -7,6 +7,10 @@ RUN DEBIAN_FRONTEND=noninteractive \
 RUN apt-get -y install \
 	git make gdb python3-dev \
 	libbsd-dev libc6-dev gcc-multilib linux-libc-dev \
-	pkg-config libfuse2 libfuse-dev
+	pkg-config libfuse2 libfuse-dev wget python3-pip
+
+RUN wget -P ~ https://github.com/cyrus-and/gdb-dashboard/raw/master/.gdbinit
+
+RUN pip install pygments
 
 WORKDIR /fisopfs
