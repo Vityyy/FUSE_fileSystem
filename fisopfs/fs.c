@@ -1,8 +1,11 @@
 #include <fcntl.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
+#include <libgen.h>
 
 #define MAX_FILES 1024
 #define MAX_DENTRIES 16
@@ -18,6 +21,7 @@ struct inode {
 	struct stat st;
 	ssize_t block_idx;   // in blocks table
 	ssize_t parent_idx;  // in inodes table
+	bool free;
 };
 
 struct dentry {
@@ -31,15 +35,43 @@ union block_data {
 };
 
 struct block {
-	ssize_t next_free;
+	bool free;
 	block_data_t data;
 };
 
 
-static ssize_t first_free = 0;
 static inode_t inodes[MAX_FILES] = { 0 };
 static block_t blocks[MAX_FILES] = { 0 };
 
+ssize_t
+find_free_dentry(const block_t *block)
+{
+	for (ssize_t i = 0; i < MAX_DENTRIES; i++)
+		if (block->data.dentries[i].inode_idx == -1)
+			return i;
+
+	return -1;
+}
+
+ssize_t
+find_free_inode(void)
+{
+	for (ssize_t i = 0; i < MAX_FILES; i++)
+		if (inodes[i].free)
+			return i;
+
+	return -1;
+}
+
+ssize_t
+find_free_block(void)
+{
+	for (ssize_t i = 0; i < MAX_FILES; i++)
+		if (blocks[i].free)
+			return i;
+
+	return -1;
+}
 
 // PRE: path should be a valid path (in terms of format).
 // Maybe the file or directory does not exist, but the path
@@ -47,25 +79,37 @@ static block_t blocks[MAX_FILES] = { 0 };
 ssize_t
 get_inode_idx_from_path(const char *path)
 {
+	if (path == NULL)
+		return -1;
+
 	if (strcmp(path, "/") == 0)
 		return 0;
 
 	size_t inode_idx = 0;
 
-	for (char *s = strtok(path, "/"); s != NULL; s = strtok(NULL, "/")) {
-		ssize_t block_idx = inodes[inode_idx].block_idx;
+	char *path_copy = strdup(path);
+
+	for (const char *s = strtok(path_copy, "/"); s != NULL;
+	     s = strtok(NULL, "/")) {
+		const ssize_t block_idx = inodes[inode_idx].block_idx;
 		if (block_idx == -1) {
 			// error
 		}
-		for (size_t i = 0; i < MAX_DENTRIES; i++) {
-			dentry_t dentry = blocks[block_idx].data.dentries[i];
-			if (strcmp(dentry.name, s) == 0) {
-				inode_idx = dentry.inode_idx;
+
+		size_t i = 0;
+		for (i = 0; i < MAX_DENTRIES; i++) {
+			dentry_t *dentry = &blocks[block_idx].data.dentries[i];
+			if (strcmp(dentry->name, s) == 0) {
+				inode_idx = dentry->inode_idx;
 				break;
 			}
 		}
-		return -1;  // Dentry not found
+
+		if (i >= MAX_DENTRIES)
+			return -1;  // Dentry not found
 	}
+
+	free(path_copy);
 
 	return inode_idx;
 }
@@ -74,26 +118,78 @@ get_inode_idx_from_path(const char *path)
 int
 fs_getattr(const char *path, struct stat *st)
 {
-	ssize_t inode_idx = get_inode_idx_from_path(path);
+	const ssize_t inode_idx = get_inode_idx_from_path(path);
 
-	if (inode_idx == -1) {
-		// error
-	}
+	if (inode_idx == -1)
+		return -1;
 
-	struct stat *src = &inodes[inode_idx].st;
-	struct stat *dst = st;
-
-	memcpy(dst, src, sizeof(struct stat));
-
+	*st = inodes[inode_idx].st;
 	return 0;
 }
 
 /* Create a directory */
 int
-fs_mkdir(const char *path, mode_t mode)
+fs_mkdir(const char *path)
 {
-	// Completar
+	char *path_copy = strdup(path);
+	char *new_dir = strdup(path);
+	const char *dir = dirname(path_copy);
+	const char *new_dir_name = basename(path_copy);
 
+	if (strlen(new_dir_name) > MAX_FILE_NAME) {
+		free(path_copy);
+		free(new_dir);
+		return -1;
+	}
+
+	const ssize_t parent_idx = get_inode_idx_from_path(dir);
+
+	if (parent_idx == -1)
+		return -1;
+
+	if (!S_IFDIR(inodes[parent_idx].st.st_mode))
+		return -1;
+
+	const ssize_t free_dentry_idx =
+	        find_free_dentry(&blocks[inodes[parent_idx].block_idx]);
+
+	if (free_dentry_idx == -1)
+		return -1;
+
+	const ssize_t free_inode_idx = find_free_inode();
+
+	if (free_inode_idx == -1)
+		return -1;
+
+	const ssize_t free_block_idx = find_free_block();
+
+	if (free_block_idx == -1)
+		return -1;
+
+	inodes[free_inode_idx] =
+	        (inode_t) { .free = false,
+		            .st = { .st_mode = __S_IFDIR | 0755, .st_nlink = 1 },
+		            .block_idx = free_block_idx,
+		            .parent_idx = parent_idx };
+
+	blocks[free_block_idx] =
+	        (block_t) { .free = false,
+		            .data = (block_data_t) {
+		                    .dentries = { { .name = ".",
+		                                    .inode_idx = free_inode_idx },
+		                                  { .name = "..",
+		                                    .inode_idx = parent_idx } } } };
+
+	blocks[inodes[parent_idx].block_idx].data.dentries[free_dentry_idx] =
+	        (dentry_t) { .inode_idx = free_inode_idx };
+
+	strcpy(blocks[inodes[parent_idx].block_idx]
+	               .data.dentries[free_dentry_idx]
+	               .name,
+	       new_dir_name);
+
+	free(path_copy);
+	free(new_dir);
 	return 0;
 }
 
@@ -157,30 +253,25 @@ fs_readdir(const char *path, void *buffer, off_t offset)
 void
 newFileSystem(void)
 {
-	first_free = 0;
 	memset(inodes, 0, sizeof(inodes));
 	memset(blocks, 0, sizeof(blocks));
-
 	inodes[0] =
-	        (inode_t){ .st = { .st_mode = __S_IFDIR | 0755, .st_nlink = 1 },
-		           .block_idx = 0,
-		           .parent_idx = -1 };
+	        (inode_t) { .free = false,
+		            .st = { .st_mode = __S_IFDIR | 0755, .st_nlink = 1 },
+		            .block_idx = 0,
+		            .parent_idx = -1 };
 
-	blocks[0] = (block_t){
-		.next_free = -1,
+	blocks[0] = (block_t) {
+		.free = false,
 		.data = { .dentries = { { .name = ".", .inode_idx = 0 },
-		                        { .name = "..", .inode_idx = -1 } } }
+		                        { .name = "..", .inode_idx = -2 } } }
 	};
-
-	first_free = 1;
-
-	for (ssize_t i = 1; i < 1023; i++) {
-		inodes[i] = (inode_t){ .block_idx = -1, .parent_idx = -1 };
-		blocks[i] = (block_t){ .next_free = i + 1 };
+	for (ssize_t i = 1; i < MAX_FILES; i++) {
+		inodes[i] = (inode_t) { .free = true,
+			                .block_idx = -1,
+			                .parent_idx = -1 };
+		blocks[i] = (block_t) { .free = true };
 	}
-
-	inodes[1023] = (inode_t){ .block_idx = -1, .parent_idx = -1 };
-	blocks[1023] = (block_t){ .next_free = 1 };
 }
 
 /* Initialize filesystem */
@@ -193,13 +284,8 @@ fs_init(const char *const restrict filepath)
 		return NULL;
 	}
 
-	ssize_t err = read(fd, &first_free, sizeof(first_free));
-	if (err == -1) {
-		newFileSystem();
-		return NULL;
-	}
 
-	err = read(fd, inodes, sizeof(inodes));
+	ssize_t err = read(fd, inodes, sizeof(inodes));
 	if (err == -1) {
 		newFileSystem();
 		return NULL;
@@ -222,15 +308,11 @@ fs_destroy(const char *const restrict filepath)
 	if (fd == -1)
 		return;
 
-	ssize_t err = write(fd, &first_free, sizeof(first_free));
+	const ssize_t err = write(fd, inodes, sizeof(inodes));
 	if (err == -1)
 		return;
 
-	err = write(fd, inodes, sizeof(inodes));
-	if (err == -1)
-		return;
-
-	err = write(fd, blocks, sizeof(blocks));
+	(void) write(fd, blocks, sizeof(blocks));
 }
 
 /* Create and open a file */

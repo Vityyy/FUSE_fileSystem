@@ -45,13 +45,16 @@ fisopfs_getattr(const char *path, struct stat *st)
 	// return 0;
 }
 
-extern int fs_mkdir(const char *path, mode_t mode);
+extern int fs_mkdir(const char *path);
 /* Create a directory */
 int
-fisopfs_mkdir(const char *path, mode_t mode)
+fisopfs_mkdir(const char *path, const mode_t mode)
 {
 	printf("[debug] fisopfs_mkdir - path: %s\n", path);
-	return 0;
+	if (!S_ISDIR(mode))
+		return -1;
+
+	return fs_mkdir(path);
 }
 
 extern int fs_unlink(const char *path);
