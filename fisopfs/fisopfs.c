@@ -51,9 +51,6 @@ int
 fisopfs_mkdir(const char *path, const mode_t mode)
 {
 	printf("[debug] fisopfs_mkdir - path: %s\n", path);
-	if (!S_ISDIR(mode))
-		return 0;
-
 	return fs_mkdir(path);
 }
 
@@ -455,12 +452,12 @@ fisopfs_fallocate(const char *path,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-static struct fuse_operations operations = { .getattr = fisopfs_getattr,
+static struct fuse_operations operations = { .getattr = fisopfs_getattr,  //
 	                                     .readlink = fisopfs_readlink,
 	                                     .mknod = fisopfs_mknod,
-	                                     .mkdir = fisopfs_mkdir,
-	                                     .unlink = fisopfs_unlink,
-	                                     .rmdir = fisopfs_rmdir,
+	                                     .mkdir = fisopfs_mkdir,    //
+	                                     .unlink = fisopfs_unlink,  //
+	                                     .rmdir = fisopfs_rmdir,    //
 	                                     .symlink = fisopfs_symlink,
 	                                     .rename = fisopfs_rename,
 	                                     .link = fisopfs_link,
@@ -479,13 +476,13 @@ static struct fuse_operations operations = { .getattr = fisopfs_getattr,
 	                                     .listxattr = fisopfs_listxattr,
 	                                     .removexattr = fisopfs_removexattr,
 	                                     .opendir = fisopfs_opendir,
-	                                     .readdir = fisopfs_readdir,
+	                                     .readdir = fisopfs_readdir,  //
 	                                     .releasedir = fisopfs_releasedir,
 	                                     .fsyncdir = fisopfs_fsyncdir,
-	                                     .init = fisopfs_init,
-	                                     .destroy = fisopfs_destroy,
+	                                     .init = fisopfs_init,        // i
+	                                     .destroy = fisopfs_destroy,  //
 	                                     .access = fisopfs_access,
-	                                     .create = fisopfs_create,
+	                                     .create = fisopfs_create,  //
 	                                     .ftruncate = fisopfs_ftruncate,
 	                                     .fgetattr = fisopfs_fgetattr,
 	                                     .lock = fisopfs_lock,

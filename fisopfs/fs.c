@@ -6,6 +6,7 @@
 #include <time.h>
 #include <stdbool.h>
 #include <libgen.h>
+#include <asm-generic/errno-base.h>
 
 #define MAX_FILES 1024
 #define MAX_DENTRIES 16
@@ -18,12 +19,12 @@ typedef union block_data block_data_t;
 typedef struct block block_t;
 
 static char *
-strdup(const char *const restrict __s)
+strdup(const char *const restrict _s)
 {
-	const size_t len = strlen(__s) + 1;
+	const size_t len = strlen(_s) + 1;
 	char *copy = malloc(len);
 	if (copy)
-		memcpy(copy, __s, len);
+		memcpy(copy, _s, len);
 
 	return copy;
 }
@@ -132,7 +133,7 @@ fs_getattr(const char *path, struct stat *st)
 	const ssize_t inode_idx = get_inode_idx_from_path(path);
 
 	if (inode_idx == -1)
-		return -1;
+		return -ENOENT;
 
 	*st = inodes[inode_idx].st;
 	return 0;
@@ -179,7 +180,7 @@ fs_mkdir(const char *path)
 
 	inodes[free_inode_idx] =
 	        (inode_t) { .free = false,
-		            .st = { .st_mode = S_IFDIR | 0777, .st_nlink = 1 },
+		            .st = { .st_mode = __S_IFDIR | 0777, .st_nlink = 1 },
 		            .block_idx = free_block_idx,
 		            .parent_idx = parent_idx };
 
@@ -300,7 +301,7 @@ newFileSystem(void)
 	memset(blocks, 0, sizeof(blocks));
 	inodes[0] =
 	        (inode_t) { .free = false,
-		            .st = { .st_mode = S_IFDIR | 0777, .st_nlink = 1 },
+		            .st = { .st_mode = __S_IFDIR | 0777, .st_nlink = 1 },
 		            .block_idx = 0,
 		            .parent_idx = -1 };
 
