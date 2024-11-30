@@ -28,21 +28,6 @@ fisopfs_getattr(const char *path, struct stat *st)
 {
 	printf("[debug] fisopfs_getattr - path: %s\n", path);
 	return fs_getattr(path, st);
-
-	// if (strcmp(path, "/") == 0) {
-	// 	st->st_uid = 1717;
-	// 	st->st_mode = __S_IFDIR | 0755;
-	// 	st->st_nlink = 2;
-	// } else if (strcmp(path, "/fisop") == 0) {
-	// 	st->st_uid = 1818;
-	// 	st->st_mode = __S_IFREG | 0644;
-	// 	st->st_size = 2048;
-	// 	st->st_nlink = 1;
-	// } else {
-	// 	return -ENOENT;
-	// }
-
-	// return 0;
 }
 
 extern int fs_mkdir(const char *path);
@@ -60,7 +45,7 @@ int
 fisopfs_unlink(const char *path)
 {
 	printf("[debug] fisopfs_unlink - path: %s\n", path);
-	return 0;
+	return fs_unlink(path);
 }
 
 extern int fs_rmdir(const char *path);
@@ -69,7 +54,7 @@ int
 fisopfs_rmdir(const char *path)
 {
 	printf("[debug] fisopfs_rmdir - path: %s\n", path);
-	return 0;
+	return fs_rmdir(path);
 }
 
 extern int fs_truncate(const char *path, off_t size);
@@ -78,11 +63,8 @@ int
 fisopfs_truncate(const char *path, off_t size)
 {
 	printf("[debug] fisopfs_truncate - path: %s\n", path);
-	return 0;
+	return fs_truncate(path, size);
 }
-
-#define MAX_CONTENIDO 100
-static char fisop_file_contenidos[MAX_CONTENIDO] = "hola fisopfs!\n";
 
 extern int fs_read(const char *path, char *buffer, size_t size, off_t offset);
 /* Read data from an open file */
@@ -97,19 +79,7 @@ fisopfs_read(const char *path,
 	       path,
 	       offset,
 	       size);
-
-	// Solo tenemos un archivo hardcodeado!
-	if (strcmp(path, "/fisop") != 0)
-		return -ENOENT;
-
-	if (offset + size > strlen(fisop_file_contenidos))
-		size = strlen(fisop_file_contenidos) - offset;
-
-	size = size > 0 ? size : 0;
-
-	memcpy(buffer, fisop_file_contenidos + offset, size);
-
-	return size;
+	return fs_read(path, buffer, size, offset);
 }
 
 extern int fs_write(const char *path, const char *buf, size_t size, off_t offset);
@@ -122,10 +92,10 @@ fisopfs_write(const char *path,
               struct fuse_file_info *fi)
 {
 	printf("[debug] fisopfs_write - path: %s\n", path);
-	return 0;
+	return fs_write(path, buf, size, offset);
 }
 
-extern int fs_readdir(const char *path, void *buffer);
+extern int fs_readdir(const char *path, void *buffer, off_t offset);
 /* Read directory */
 static int
 fisopfs_readdir(const char *path,
@@ -137,8 +107,8 @@ fisopfs_readdir(const char *path,
 	printf("[debug] fisopfs_readdir - path: %s\n", path);
 
 	char entry_name[248] = { 0 };
-	while (fs_readdir(path, entry_name) > 0)
-		filler(buffer, entry_name, NULL, 0);
+	while (fs_readdir(path, entry_name, offset) > 0)
+		filler(buffer, entry_name, NULL, offset++);
 
 	return 0;
 }
@@ -167,7 +137,7 @@ int
 fisopfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
 	printf("[debug] fisopfs_create - path: %s\n", path);
-	return 0;
+	return fs_create(path, mode);
 }
 
 extern int fs_utimens(const char *path, const struct timespec tv[2]);
@@ -451,24 +421,27 @@ fisopfs_fallocate(const char *path,
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// + -> fully functioning (after some testing)
+// ~ -> implemented
+// - -> missing
 
-static struct fuse_operations operations = { .getattr = fisopfs_getattr,  //
+static struct fuse_operations operations = { .getattr = fisopfs_getattr,  	// ~
 	                                     .readlink = fisopfs_readlink,
 	                                     .mknod = fisopfs_mknod,
-	                                     .mkdir = fisopfs_mkdir,    //
-	                                     .unlink = fisopfs_unlink,  //
-	                                     .rmdir = fisopfs_rmdir,    //
+	                                     .mkdir = fisopfs_mkdir,    		// ~
+	                                     .unlink = fisopfs_unlink,  		// ~
+	                                     .rmdir = fisopfs_rmdir,    		// -
 	                                     .symlink = fisopfs_symlink,
 	                                     .rename = fisopfs_rename,
 	                                     .link = fisopfs_link,
 	                                     .chmod = fisopfs_chmod,
 	                                     .chown = fisopfs_chown,
-	                                     .truncate = fisopfs_truncate,
+	                                     .truncate = fisopfs_truncate,		// ~
 	                                     .open = fisopfs_open,
-	                                     .read = fisopfs_read,
-	                                     .write = fisopfs_write,
+	                                     .read = fisopfs_read,				// ~
+	                                     .write = fisopfs_write,			// ~
 	                                     .statfs = fisopfs_statfs,
-	                                     .flush = fisopfs_flush,  // ?
+	                                     .flush = fisopfs_flush,
 	                                     .release = fisopfs_release,
 	                                     .fsync = fisopfs_fsync,
 	                                     .setxattr = fisopfs_setxattr,
@@ -476,17 +449,17 @@ static struct fuse_operations operations = { .getattr = fisopfs_getattr,  //
 	                                     .listxattr = fisopfs_listxattr,
 	                                     .removexattr = fisopfs_removexattr,
 	                                     .opendir = fisopfs_opendir,
-	                                     .readdir = fisopfs_readdir,  //
+	                                     .readdir = fisopfs_readdir,		// ~
 	                                     .releasedir = fisopfs_releasedir,
 	                                     .fsyncdir = fisopfs_fsyncdir,
-	                                     .init = fisopfs_init,        // i
-	                                     .destroy = fisopfs_destroy,  //
+	                                     .init = fisopfs_init,        		// ~
+	                                     .destroy = fisopfs_destroy,  		// ~
 	                                     .access = fisopfs_access,
-	                                     .create = fisopfs_create,  //
+	                                     .create = fisopfs_create,  		// ~
 	                                     .ftruncate = fisopfs_ftruncate,
 	                                     .fgetattr = fisopfs_fgetattr,
 	                                     .lock = fisopfs_lock,
-	                                     .utimens = fisopfs_utimens,
+	                                     .utimens = fisopfs_utimens,		// ~
 	                                     .bmap = fisopfs_bmap,
 	                                     .ioctl = fisopfs_ioctl,
 	                                     .poll = fisopfs_poll,
