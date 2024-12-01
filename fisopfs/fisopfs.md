@@ -4,7 +4,7 @@
 
 ### Estructuras en memoria
 
-![img.png](img.png)
+![img.png](imgs/img.png)
 
 Basamos el filesystem en el very simple filesystem (vsfs), en donde tenemos dos bitmaps, uno de inodos
 y el otro de bloques de datos, los cuales indican si un inodo o un bloque de datos está ocupado o no.
@@ -18,7 +18,7 @@ dentry apuntará a un inodo.
 
 ### Ejemplo de file system
 
-![img_1.png](img_1.png)
+![img_1.png](imgs/img_1.png)
 En este ejemplo, tenemos un filesystem con 4 inodos, 2 de tipo directorio y 2 de tipo regular. El inodo 0 es la raiz,
 la cual apunta a un conjunto de dentries, de los cuales el primero (dir) apunta a un directorio y el segundo (file)
 apunta a un archivo.
@@ -28,11 +28,11 @@ apunta a su bloque de datos
 
 Representación en forma de arbol:
 
-![img_2.png](img_2.png)
+![img_2.png](imgs/img_2.png)
 
 ### Busqueda de archivos
 
-![img_3.png](img_3.png)
+![img_3.png](imgs/img_3.png)
 
 La busqueda de archivos consiste en ir resolviendo los nombres de un path buscandolos en los dentries de cada inodo de
 tipo directorio empezando desde la raiz.
@@ -45,8 +45,8 @@ para subfile.
 Para guardar el filesystem en disco, simplemente se escribe toda la estructura de datos filesystem en un archivo. Para
 recuperar el file system, se lee todo el contenido del archivo y se lo copia a la estructura de datos filesystem.
 
-![img_4.png](img_4.png)
-![img_5.png](img_5.png)
+![img_4.png](imgs/img_4.png)
+![img_5.png](imgs/img_5.png)
 
 ### Información relevante sobre la implementación
 
@@ -57,49 +57,49 @@ ordenada para que recorrer la tabla de dentries de un inodo sea simplemente reco
 
 ### Crear archivo en directorio
 
-![img_6.png](img_6.png)
+![img_6.png](imgs/img_6.png)
 
 ### Crear archivo, escribir y appendear texto
 
-![img_7.png](img_7.png)
+![img_7.png](imgs/img_7.png)
 
 ### Crear directorio y archivo
 
-![img_8.png](img_8.png)
+![img_8.png](imgs/img_8.png)
 
 ### Directorios especiales
 
-![img_9.png](img_9.png)
+![img_9.png](imgs/img_9.png)
 
 ### Less
 
-![img_10.png](img_10.png)
-![img_11.png](img_11.png)
+![img_10.png](imgs/img_10.png)
+![img_11.png](imgs/img_11.png)
 
 ### More
 
-![img_12.png](img_12.png)
+![img_12.png](imgs/img_12.png)
 
 ### Persistencia
 
-![img_15.png](img_15.png)
+![img_15.png](imgs/img_15.png)
 
 ### rm
 
-![img_13.png](img_13.png)
+![img_13.png](imgs/img_13.png)
 
 ### rmdir con contenido
 
-![img_14.png](img_14.png)
+![img_14.png](imgs/img_14.png)
 
 ### rmdir sin contenido
 
-![img_16.png](img_16.png)
+![img_16.png](imgs/img_16.png)
 
 ### Sobreescribir archivo
 
-![img_17.png](img_17.png)
+![img_17.png](imgs/img_17.png)
 
 ### stat
 
-![img_18.png](img_18.png)
+![img_18.png](imgs/img_18.png)
