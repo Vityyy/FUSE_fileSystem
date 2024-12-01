@@ -90,9 +90,6 @@ get_inode_idx_from_path(const char *path)
 	for (const char *s = strtok(path_copy, "/"); s != NULL;
 	     s = strtok(NULL, "/")) {
 		const ssize_t block_idx = inodes[inode_idx].block_idx;
-		if (block_idx == -1) {
-			// error
-		}
 
 		size_t i = 0;
 		block_t *block = &blocks[block_idx];
@@ -104,12 +101,13 @@ get_inode_idx_from_path(const char *path)
 			}
 		}
 
-		if (i >= MAX_DENTRIES)
+		if (i >= MAX_DENTRIES) {
+			free(path_copy);
 			return -1;  // Dentry not found
+		}
 	}
 
 	free(path_copy);
-
 	return inode_idx;
 }
 
@@ -174,10 +172,10 @@ get_dentries_from_inode_index(ssize_t inode_idx)
 }
 
 void
-initialize_inode(ssize_t inode_idx,
-                 ssize_t block_idx,
-                 ssize_t parent_inode_idx,
-                 struct stat st)
+initialize_inode(const ssize_t inode_idx,
+                 const ssize_t block_idx,
+                 const ssize_t parent_inode_idx,
+                 const struct stat st)
 {
 	memset(&inodes[inode_idx], 0, sizeof(inode_t));
 	inodes_bitmap[inode_idx] = 1;
@@ -189,9 +187,9 @@ initialize_inode(ssize_t inode_idx,
 }
 
 void
-initialize_directory_block(ssize_t block_idx,
-                           ssize_t self_inode_idx,
-                           ssize_t parent_inode_idx)
+initialize_directory_block(const ssize_t block_idx,
+                           const ssize_t self_inode_idx,
+                           const ssize_t parent_inode_idx)
 {
 	data_bitmap[block_idx] = 1;
 	memset(blocks[block_idx].dentries, 0, MAX_DENTRIES * sizeof(dentry_t));
@@ -222,7 +220,7 @@ initialize_root(void)
 }
 
 void
-initialize_file_block(ssize_t block_idx)
+initialize_file_block(const ssize_t block_idx)
 {
 	data_bitmap[block_idx] = 1;
 	memset(blocks[block_idx].data, 0, MAX_FILE_SIZE);
@@ -305,26 +303,41 @@ fs_mkdir(const char *path)
 	char *dentry_name = basename(path_copy_2);
 
 	ssize_t parent_inode_idx = get_inode_idx_from_path(parent_path);
-	if (parent_inode_idx == -1)
+	if (parent_inode_idx == -1) {
+		free(path_copy_1);
+		free(path_copy_2);
 		return -1;
+	}
+	if (!S_ISDIR(inodes[parent_inode_idx].st.st_mode)) {
+		free(path_copy_1);
+		free(path_copy_2);
+		return -1;
+	}
 
-	if (!S_ISDIR(inodes[parent_inode_idx].st.st_mode))
-		return -1;
 
 	dentry_t *parent_dentries =
 	        get_dentries_from_inode_index(parent_inode_idx);
 
 	ssize_t dentry_idx = get_free_dentry_idx(parent_dentries);
-	if (dentry_idx == -1)
+	if (dentry_idx == -1) {
+		free(path_copy_1);
+		free(path_copy_2);
 		return -1;
+	}
 
 	ssize_t new_inode_idx = get_free_inode_idx();
-	if (new_inode_idx == -1)
+	if (new_inode_idx == -1) {
+		free(path_copy_1);
+		free(path_copy_2);
 		return -1;
+	}
 
 	ssize_t new_block_index = get_free_block_idx();
-	if (new_block_index == -1)
+	if (new_block_index == -1) {
+		free(path_copy_1);
+		free(path_copy_2);
 		return -1;
+	}
 
 	strcpy(parent_dentries[dentry_idx].name, dentry_name);
 	parent_dentries[dentry_idx].inode_idx = new_inode_idx;
@@ -484,26 +497,41 @@ fs_create(const char *path, mode_t mode)
 	char *dentry_name = basename(path_copy_2);
 
 	ssize_t parent_inode_idx = get_inode_idx_from_path(parent_path);
-	if (parent_inode_idx == -1)
+	if (parent_inode_idx == -1) {
+		free(path_copy_1);
+		free(path_copy_2);
 		return -1;
+	}
 
-	if (!S_ISDIR(inodes[parent_inode_idx].st.st_mode))
+	if (!S_ISDIR(inodes[parent_inode_idx].st.st_mode)) {
+		free(path_copy_1);
+		free(path_copy_2);
 		return -1;
+	}
 
 	dentry_t *parent_dentries =
 	        get_dentries_from_inode_index(parent_inode_idx);
 
 	ssize_t dentry_idx = get_free_dentry_idx(parent_dentries);
-	if (dentry_idx == -1)
+	if (dentry_idx == -1) {
+		free(path_copy_1);
+		free(path_copy_2);
 		return -1;
+	}
 
 	ssize_t new_inode_idx = get_free_inode_idx();
-	if (new_inode_idx == -1)
+	if (new_inode_idx == -1) {
+		free(path_copy_1);
+		free(path_copy_2);
 		return -1;
+	}
 
 	ssize_t new_block_index = get_free_block_idx();
-	if (new_block_index == -1)
+	if (new_block_index == -1) {
+		free(path_copy_1);
+		free(path_copy_2);
 		return -1;
+	}
 
 	strcpy(parent_dentries[dentry_idx].name, dentry_name);
 	parent_dentries[dentry_idx].inode_idx = new_inode_idx;
