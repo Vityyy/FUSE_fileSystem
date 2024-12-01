@@ -18,8 +18,7 @@
 char *filedisk = DEFAULT_FILE_DISK;
 
 
-// IMPLEMENTED
-// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IMPLEMENTED //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern int fs_getattr(const char *path, struct stat *st);
 /* Get file attributes */
@@ -153,8 +152,7 @@ fisopfs_utimens(const char *path, const struct timespec tv[2])
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// UNIMPLEMENTED
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// UNIMPLEMENTED ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* Read the target of a symbolic link */
 int
@@ -430,7 +428,7 @@ static struct fuse_operations operations = { .getattr = fisopfs_getattr,  	// ~
 	                                     .mknod = fisopfs_mknod,
 	                                     .mkdir = fisopfs_mkdir,    		// ~
 	                                     .unlink = fisopfs_unlink,  		// ~
-	                                     .rmdir = fisopfs_rmdir,    		// -
+	                                     .rmdir = fisopfs_rmdir,    		// ~
 	                                     .symlink = fisopfs_symlink,
 	                                     .rename = fisopfs_rename,
 	                                     .link = fisopfs_link,

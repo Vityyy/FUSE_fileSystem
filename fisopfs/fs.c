@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <libgen.h>
 #include <errno.h>
+#include <stdio.h>
 
 #define MAX_FILES 1024
 #define MAX_DENTRIES 16
@@ -338,19 +339,27 @@ fs_rmdir(const char *path)
 int
 fs_truncate(const char *path, off_t size)
 {
-	ssize_t inode_idx = get_inode_idx_from_path(path);
-	if (inode_idx == -1)
-		return -1;
+	if (size > MAX_FILE_SIZE) {
+		errno = EINVAL;
+		fprintf(stderr, "[debug] Error truncate: %s\n", strerror(errno));
+		return -EINVAL;
+	}
 
-	// Should we verify the size?
+	ssize_t inode_idx = get_inode_idx_from_path(path);
+	if (inode_idx == -1) {
+		errno = ENOENT;
+		fprintf(stderr, "[debug] Error truncate: %s\n", strerror(errno));
+		return -ENOENT;
+	}
 
 	inode_t *inode = &inodes[inode_idx];
-	char *data = blocks[inode->block_idx].data;
-
 	// Change size
 	inode->st.st_size = size;
+	// Change modification time
+	inode->st.st_mtime = time(NULL);
 
 	// Maybe unnecessary but:
+	char *data = blocks[inode->block_idx].data;
 	memset(data + size, 0, MAX_FILE_SIZE - size);
 
 	return 0;
@@ -441,15 +450,20 @@ void *
 fs_init(const char *const restrict filepath)
 {
 	const int fd = open(filepath, O_RDONLY);
-	if (fd == -1) {
+	if (fd < 0) {
+		fprintf(stderr, "[debug] Error loading filesystem: %s\n", strerror(errno));
 		new_file_system();
 		return NULL;
 	}
 
-	ssize_t err = read(fd, &fisopfs, sizeof(fisopfs));
-	if (err == -1)
+	if ((read(fd, &fisopfs, sizeof(fisopfs))) < 0) {
+		fprintf(stderr, "[debug] Error loading filesystem: %s\n", strerror(errno));
 		new_file_system();
+	}	
 
+	if (close(fd) < 0)
+		fprintf(stderr, "[debug] Error loading filesystem: %s\n", strerror(errno));
+	
 	return NULL;
 }
 
@@ -460,10 +474,18 @@ void
 fs_destroy(const char *const restrict filepath)
 {
 	const int fd = open(filepath, O_CREAT | O_WRONLY | O_TRUNC, 0644);
-	if (fd == -1)
+	if (fd < 0) {
+		fprintf(stderr, "[debug] Error saving filesystem: %s\n", strerror(errno));
 		return;
+	}
 
-	write(fd, &fisopfs, sizeof(fisopfs));
+	if (write(fd, &fisopfs, sizeof(fisopfs)) < 0) {
+		fprintf(stderr, "[debug] Error saving filesystem: %s\n", strerror(errno));
+		return;
+	}
+
+	if (close(fd) < 0)
+		fprintf(stderr, "[debug] Error saving filesystem: %s\n", strerror(errno));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
