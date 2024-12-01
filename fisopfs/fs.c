@@ -436,122 +436,40 @@ fs_truncate(const char *path, off_t size)
 int
 fs_read(const char *path, char *buffer, size_t size, off_t offset)
 {
-	ssize_t inode_idx = get_inode_idx_from_path(path);
-	if (inode_idx == -1)
-		return -1;
+	if (offset < 0 || size < 0) {
+		errno = EINVAL;
+		return -EINVAL;
+	}
+
+	const ssize_t inode_idx = get_inode_idx_from_path(path);
+	if (inode_idx == -1) {
+		errno = ENOENT;
+		return -ENOENT;
+	}
 
 	inode_t *inode = &inodes[inode_idx];
-	off_t file_size = inode->st.st_size;
-	char *data = blocks[inode->block_idx].data;
 
-	if (!S_ISDIR(inode->st.st_mode))
-		return -1;
+	if (!S_ISREG(inode->st.st_mode)) {
+		errno = EISDIR;
+		return -EISDIR;
+	}
+	const char *data = blocks[inode->block_idx].data;
+	const off_t file_size = inode->st.st_size;
+	if (offset > file_size) {
+		errno = EINVAL;
+		return -EINVAL;
+	}
 
-	if (offset + size > file_size)
+
+	if (file_size - offset < size)
 		size = file_size - offset;
 
-	size = size > 0 ? size : 0;
 
-	memcpy(buffer, data + offset, size);
-
+	strncpy(buffer, data + offset, size);
+	inode->st.st_atime = time(NULL);
 	return size;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/* Write data to an open file */
-int
-fs_write(const char *path, const char *buffer, size_t size, off_t offset)
-{
-	ssize_t inode_idx = get_inode_idx_from_path(path);
-	if (inode_idx == -1)
-		return -1;  // Si no existe quizá podemos crearlo
-
-	inode_t *inode = &inodes[inode_idx];
-	char *data = blocks[inode->block_idx].data;
-
-	if (!S_ISREG(inode->st.st_mode))
-		return -1;
-
-	if (offset + size > MAX_FILE_SIZE)
-		size = MAX_FILE_SIZE - offset;
-
-	size = size > 0 ? size : 0;
-
-	memcpy(data + offset, buffer, size);
-
-	inode->st.st_size += size;
-
-	return size;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/* Read directory */
-int
-fs_readdir(const char *path, void *buffer, off_t offset)
-{
-	const ssize_t inode_idx = get_inode_idx_from_path(path);
-	if (inode_idx == -1)
-		return -1;
-
-	if (!S_ISDIR(inodes[inode_idx].st.st_mode))
-		return -1;
-
-	dentry_t *dentries = get_dentries_from_inode_index(inode_idx);
-
-	if (offset >= MAX_DENTRIES || dentries[offset].inode_idx == -1)
-		return -1;
-
-	strcpy(buffer, dentries[offset].name);
-
-	return 0;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/* Initialize filesystem */
-void *
-fs_init(const char *const restrict filepath)
-{
-	const int fd = open(filepath, O_RDONLY);
-	if (fd < 0) {
-		fprintf(stderr, "[debug] Error loading filesystem: %s\n", strerror(errno));
-		new_file_system();
-		return NULL;
-	}
-
-	if ((read(fd, &fisopfs, sizeof(fisopfs))) < 0) {
-		fprintf(stderr, "[debug] Error loading filesystem: %s\n", strerror(errno));
-		new_file_system();
-	}	
-
-	if (close(fd) < 0)
-		fprintf(stderr, "[debug] Error loading filesystem: %s\n", strerror(errno));
-	
-	return NULL;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/* Clean up filesystem */
-void
-fs_destroy(const char *const restrict filepath)
-{
-	const int fd = open(filepath, O_CREAT | O_WRONLY | O_TRUNC, 0644);
-	if (fd < 0) {
-		fprintf(stderr, "[debug] Error saving filesystem: %s\n", strerror(errno));
-		return;
-	}
-
-	if (write(fd, &fisopfs, sizeof(fisopfs)) < 0) {
-		fprintf(stderr, "[debug] Error saving filesystem: %s\n", strerror(errno));
-		return;
-	}
-
-	if (close(fd) < 0)
-		fprintf(stderr, "[debug] Error saving filesystem: %s\n", strerror(errno));
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -597,6 +515,135 @@ fs_create(const char *path, mode_t mode)
 
 	return 0;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* Write data to an open file */
+int
+fs_write(const char *path, const char *buffer, size_t size, off_t offset)
+{
+	const size_t sum = offset + size;
+	if (sum > MAX_FILE_SIZE) {
+		errno = EFBIG;
+		return -EFBIG;
+	}
+
+	ssize_t inode_idx = get_inode_idx_from_path(path);
+	if (inode_idx == -1) {
+		const size_t err = fs_create(path, 0644);
+		if (err < -1)
+			return err;
+		inode_idx = get_inode_idx_from_path(path);
+	}
+
+	if (inode_idx < 0) {
+		errno = ENOENT;
+		return -ENOENT;
+	}
+	inode_t *inode = &inodes[inode_idx];
+
+	if (inode->st.st_size < offset) {
+		errno = EINVAL;
+		return -EINVAL;
+	}
+
+	if (!S_ISREG(inode->st.st_mode)) {
+		errno = EACCES;
+		return -EACCES;
+	}
+
+	char *data = blocks[inode->block_idx].data;
+	strncpy(data + offset, buffer, size);
+	inode->st.st_size = (off_t) strlen(data);
+	inode->st.st_mtime = time(NULL);
+	inode->st.st_atime = time(NULL);
+	data[inode->st.st_size] = '\0';
+
+	return size;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* Read directory */
+int
+fs_readdir(const char *path, void *buffer, off_t offset)
+{
+	const ssize_t inode_idx = get_inode_idx_from_path(path);
+	if (inode_idx == -1)
+		return -1;
+
+	if (!S_ISDIR(inodes[inode_idx].st.st_mode))
+		return -1;
+
+	dentry_t *dentries = get_dentries_from_inode_index(inode_idx);
+
+	if (offset >= MAX_DENTRIES || dentries[offset].inode_idx == -1)
+		return -1;
+
+	strcpy(buffer, dentries[offset].name);
+
+	return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* Initialize filesystem */
+void *
+fs_init(const char *const restrict filepath)
+{
+	const int fd = open(filepath, O_RDONLY);
+	if (fd < 0) {
+		fprintf(stderr,
+		        "[debug] Error loading filesystem: %s\n",
+		        strerror(errno));
+		new_file_system();
+		return NULL;
+	}
+
+	if ((read(fd, &fisopfs, sizeof(fisopfs))) < 0) {
+		fprintf(stderr,
+		        "[debug] Error loading filesystem: %s\n",
+		        strerror(errno));
+		new_file_system();
+	}
+
+	if (close(fd) < 0)
+		fprintf(stderr,
+		        "[debug] Error loading filesystem: %s\n",
+		        strerror(errno));
+
+	return NULL;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* Clean up filesystem */
+void
+fs_destroy(const char *const restrict filepath)
+{
+	const int fd = open(filepath, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+	if (fd < 0) {
+		fprintf(stderr,
+		        "[debug] Error saving filesystem: %s\n",
+		        strerror(errno));
+		return;
+	}
+
+	if (write(fd, &fisopfs, sizeof(fisopfs)) < 0) {
+		fprintf(stderr,
+		        "[debug] Error saving filesystem: %s\n",
+		        strerror(errno));
+		return;
+	}
+
+	if (close(fd) < 0)
+		fprintf(stderr,
+		        "[debug] Error saving filesystem: %s\n",
+		        strerror(errno));
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

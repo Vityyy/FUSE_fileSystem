@@ -18,7 +18,8 @@
 char *filedisk = DEFAULT_FILE_DISK;
 
 
-// IMPLEMENTED //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IMPLEMENTED
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extern int fs_getattr(const char *path, struct stat *st);
 /* Get file attributes */
@@ -153,7 +154,8 @@ fisopfs_utimens(const char *path, const struct timespec tv[2])
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// UNIMPLEMENTED ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// UNIMPLEMENTED
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* Read the target of a symbolic link */
 int
@@ -383,7 +385,7 @@ fisopfs_write_buf(const char *path,
                   struct fuse_file_info *fi)
 {
 	printf("[debug] fisopfs_write_buf - path: %s\n", path);
-	return 0;
+	return fs_read(path, buf->buf[0].mem, buf->buf[0].size, off);
 }
 
 /* Store data from an open file in a buffer */
@@ -395,7 +397,7 @@ fisopfs_read_buf(const char *path,
                  struct fuse_file_info *fi)
 {
 	printf("[debug] fisopfs_read_buf - path: %s\n", path);
-	return 0;
+	return fs_write(path, (*bufp)->buf[0].mem, (*bufp)->buf[0].size, off);
 }
 
 /* Perform BSD file locking operation */
@@ -427,9 +429,9 @@ fisopfs_fallocate(const char *path,
 static struct fuse_operations operations = { .getattr = fisopfs_getattr,  // ~
 	                                     .readlink = fisopfs_readlink,
 	                                     .mknod = fisopfs_mknod,
-	                                     .mkdir = fisopfs_mkdir,    		// ~
-	                                     .unlink = fisopfs_unlink,  		// ~
-	                                     .rmdir = fisopfs_rmdir,    		// ~
+	                                     .mkdir = fisopfs_mkdir,    // ~
+	                                     .unlink = fisopfs_unlink,  // ~
+	                                     .rmdir = fisopfs_rmdir,    // ~
 	                                     .symlink = fisopfs_symlink,
 	                                     .rename = fisopfs_rename,
 	                                     .link = fisopfs_link,
