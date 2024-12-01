@@ -103,11 +103,12 @@ fisopfs_readdir(const char *path,
                 off_t offset,
                 struct fuse_file_info *fi)
 {
-	printf("[debug] fisopfs_readdir - path: %s\n", path);
+	printf("[debug] fisopfs_readdir - path: %s - offset: %li\n", path, offset);
 
+	off_t i = 0;
 	char entry_name[248] = { 0 };
-	while (fs_readdir(path, entry_name, offset) > 0)
-		filler(buffer, entry_name, NULL, offset++);
+	while (fs_readdir(path, entry_name, i++) >= 0)
+		filler(buffer, entry_name, NULL, 0);
 
 	return 0;
 }
@@ -423,7 +424,7 @@ fisopfs_fallocate(const char *path,
 // ~ -> implemented
 // - -> missing
 
-static struct fuse_operations operations = { .getattr = fisopfs_getattr,  	// ~
+static struct fuse_operations operations = { .getattr = fisopfs_getattr,  // ~
 	                                     .readlink = fisopfs_readlink,
 	                                     .mknod = fisopfs_mknod,
 	                                     .mkdir = fisopfs_mkdir,    		// ~
@@ -434,10 +435,10 @@ static struct fuse_operations operations = { .getattr = fisopfs_getattr,  	// ~
 	                                     .link = fisopfs_link,
 	                                     .chmod = fisopfs_chmod,
 	                                     .chown = fisopfs_chown,
-	                                     .truncate = fisopfs_truncate,		// ~
+	                                     .truncate = fisopfs_truncate,  // ~
 	                                     .open = fisopfs_open,
-	                                     .read = fisopfs_read,				// ~
-	                                     .write = fisopfs_write,			// ~
+	                                     .read = fisopfs_read,    // ~
+	                                     .write = fisopfs_write,  // ~
 	                                     .statfs = fisopfs_statfs,
 	                                     .flush = fisopfs_flush,
 	                                     .release = fisopfs_release,
@@ -447,17 +448,17 @@ static struct fuse_operations operations = { .getattr = fisopfs_getattr,  	// ~
 	                                     .listxattr = fisopfs_listxattr,
 	                                     .removexattr = fisopfs_removexattr,
 	                                     .opendir = fisopfs_opendir,
-	                                     .readdir = fisopfs_readdir,		// ~
+	                                     .readdir = fisopfs_readdir,  // ~
 	                                     .releasedir = fisopfs_releasedir,
 	                                     .fsyncdir = fisopfs_fsyncdir,
-	                                     .init = fisopfs_init,        		// ~
-	                                     .destroy = fisopfs_destroy,  		// ~
+	                                     .init = fisopfs_init,        // ~
+	                                     .destroy = fisopfs_destroy,  // ~
 	                                     .access = fisopfs_access,
-	                                     .create = fisopfs_create,  		// ~
+	                                     .create = fisopfs_create,  // ~
 	                                     .ftruncate = fisopfs_ftruncate,
 	                                     .fgetattr = fisopfs_fgetattr,
 	                                     .lock = fisopfs_lock,
-	                                     .utimens = fisopfs_utimens,		// ~
+	                                     .utimens = fisopfs_utimens,  // ~
 	                                     .bmap = fisopfs_bmap,
 	                                     .ioctl = fisopfs_ioctl,
 	                                     .poll = fisopfs_poll,

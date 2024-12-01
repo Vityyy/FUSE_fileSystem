@@ -1,4 +1,3 @@
-
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -15,7 +14,8 @@
 #define MAX_FILE_SIZE 4096
 #define MAX_FILE_NAME 248
 
-// STRUCTURES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// STRUCTURES
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef struct inode inode_t;
 typedef struct dentry dentry_t;
@@ -34,8 +34,8 @@ struct dentry {
 };
 
 union block {
-	dentry_t dentries[MAX_DENTRIES];  	// if directory
-	char data[MAX_FILE_SIZE];       	// if regular file
+	dentry_t dentries[MAX_DENTRIES];  // if directory
+	char data[MAX_FILE_SIZE];         // if regular file
 };
 
 struct filesystem {
@@ -59,8 +59,17 @@ block_t *blocks = fisopfs.blocks;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+// USEFUL FUNCTIONS
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// USEFUL FUNCTIONS /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+char *
+strdup(const char *s)
+{
+	char *p = calloc(strlen(s) + 1, 1);
+	if (p)
+		strcpy(p, s);
+	return p;
+}
 
 // PRE: path should be a valid path (in terms of format).
 // Maybe the file or directory does not exist, but the path
@@ -104,7 +113,9 @@ get_inode_idx_from_path(const char *path)
 	return inode_idx;
 }
 
-ssize_t get_free_inode_idx() {
+ssize_t
+get_free_inode_idx()
+{
 	for (size_t i = 1; i < MAX_FILES; i++)
 		if (!inodes_bitmap[i])
 			return i;
@@ -112,7 +123,9 @@ ssize_t get_free_inode_idx() {
 	return -1;
 }
 
-ssize_t get_free_block_idx() {
+ssize_t
+get_free_block_idx()
+{
 	for (size_t i = 1; i < MAX_FILES; i++)
 		if (!data_bitmap[i])
 			return i;
@@ -120,24 +133,32 @@ ssize_t get_free_block_idx() {
 	return -1;
 }
 
-ssize_t get_free_dentry_idx(dentry_t *dentries) {
+ssize_t
+get_free_dentry_idx(dentry_t *dentries)
+{
 	for (ssize_t i = 2; i < MAX_DENTRIES; i++)
 		if (dentries[i].inode_idx == -1)
 			return i;
 	return -1;
 }
 
-void dentries_ordered_deletion(dentry_t *dentries, size_t beggining) {
+void
+dentries_ordered_deletion(dentry_t *dentries, size_t beggining)
+{
 	size_t i;
-	for (i = beggining; dentries[i].inode_idx != -1 && i < MAX_DENTRIES; i++) {
+	for (i = beggining + 1; dentries[i].inode_idx != -1 && i < MAX_DENTRIES;
+	     i++) {
 		strcpy(dentries[i - 1].name, dentries[i].name);
 		dentries[i - 1].inode_idx = dentries[i].inode_idx;
 	}
-	dentries[i - 1].inode_idx = -1; // Free the last one that was not free
+	dentries[i - 1].inode_idx = -1;  // Free the last one that was not free
 }
 
-void remove_dentry_from_parent_directory(dentry_t *parent_dentries, char *dentry_name) {
-	for (size_t i = 2; parent_dentries[i].inode_idx != -1 && i < MAX_DENTRIES; i++) {
+void
+remove_dentry_from_parent_directory(dentry_t *parent_dentries, char *dentry_name)
+{
+	for (size_t i = 2; parent_dentries[i].inode_idx != -1 && i < MAX_DENTRIES;
+	     i++) {
 		if (strcmp(parent_dentries[i].name, dentry_name) == 0) {
 			dentries_ordered_deletion(parent_dentries, i);
 			break;
@@ -146,12 +167,17 @@ void remove_dentry_from_parent_directory(dentry_t *parent_dentries, char *dentry
 }
 
 // The inode must be of type directory.
-dentry_t *get_dentries_from_inode_index(ssize_t inode_idx) {
+dentry_t *
+get_dentries_from_inode_index(ssize_t inode_idx)
+{
 	return blocks[inodes[inode_idx].block_idx].dentries;
 }
 
 void
-initialize_inode(ssize_t inode_idx, ssize_t block_idx, ssize_t parent_inode_idx)
+initialize_inode(ssize_t inode_idx,
+                 ssize_t block_idx,
+                 ssize_t parent_inode_idx,
+                 struct stat st)
 {
 	memset(&inodes[inode_idx], 0, sizeof(inode_t));
 	inodes_bitmap[inode_idx] = 1;
@@ -159,17 +185,7 @@ initialize_inode(ssize_t inode_idx, ssize_t block_idx, ssize_t parent_inode_idx)
 	inode_t *inode = &inodes[inode_idx];
 	inode->block_idx = block_idx;
 	inode->parent_idx = parent_inode_idx;
-
-	// This should not stay like this. The type (dir/file) may be an argument?
-	if (inode_idx == 0) {
-		inode->st.st_uid = 1717;
-		inode->st.st_mode = __S_IFDIR | 0755;
-		inode->st.st_nlink = 2;  // ?
-	} else {
-		inode->st.st_uid = 1818;
-		inode->st.st_mode = __S_IFREG | 0644;
-		inode->st.st_nlink = 1;
-	}
+	inode->st = st;
 }
 
 void
@@ -193,10 +209,49 @@ initialize_directory_block(ssize_t block_idx,
 }
 
 void
+initialize_root(void)
+{
+	struct stat st = { 0 };
+	st.st_mode = __S_IFDIR | 0755;
+	st.st_nlink = 2;
+	st.st_uid = getuid();
+	st.st_gid = getgid();
+
+	initialize_inode(0, 0, 0, st);
+	initialize_directory_block(0, 0, 0);
+}
+
+void
 initialize_file_block(ssize_t block_idx)
 {
 	data_bitmap[block_idx] = 1;
 	memset(blocks[block_idx].data, 0, MAX_FILE_SIZE);
+}
+
+void
+initialize_file(const ssize_t inode, const ssize_t block, const ssize_t parent)
+{
+	struct stat st = { 0 };
+	st.st_mode = __S_IFREG | 0644;
+	st.st_nlink = 1;
+	st.st_uid = getuid();
+	st.st_gid = getgid();
+
+	initialize_inode(inode, block, parent, st);
+	initialize_file_block(block);
+}
+
+void
+initialize_directory(const ssize_t inode, const ssize_t block, const ssize_t parent)
+{
+	struct stat st = { 0 };
+	st.st_mode = __S_IFDIR | 0755;
+	st.st_nlink = 2;
+	st.st_uid = getuid();
+	st.st_gid = getgid();
+
+	initialize_inode(inode, block, parent, st);
+	initialize_directory_block(block, inode, parent);
 }
 
 /*
@@ -205,14 +260,12 @@ initialize_file_block(ssize_t block_idx)
 void
 new_file_system(void)
 {
-	memset(inodes, 0, sizeof(inodes_bitmap));
-	memset(blocks, 0, sizeof(data_bitmap));
-	memset(inodes, 0, sizeof(inodes));
-	memset(blocks, 0, sizeof(blocks));
+	memset(inodes_bitmap, 0, sizeof(fisopfs.inodes_bitmap));
+	memset(data_bitmap, 0, sizeof(fisopfs.data_bitmap));
+	memset(inodes, 0, sizeof(fisopfs.inodes));
+	memset(blocks, 0, sizeof(fisopfs.blocks));
 
-	initialize_inode(0, 0, -1);
-
-	initialize_directory_block(0, 0, -2);
+	initialize_root();
 
 	for (ssize_t i = 1; i < MAX_FILES; i++) {
 		inodes[i].block_idx = -1;
@@ -223,8 +276,8 @@ new_file_system(void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-// OPERATIONS ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// OPERATIONS
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* Get file attributes */
 int
@@ -245,18 +298,22 @@ fs_getattr(const char *path, struct stat *st)
 int
 fs_mkdir(const char *path)
 {
-	char *parent_path = dirname(path);
-	char *dentry_name = basename(path);
+	char *path_copy_1 = strdup(path);
+	char *path_copy_2 = strdup(path);
+
+	char *parent_path = dirname(path_copy_1);
+	char *dentry_name = basename(path_copy_2);
 
 	ssize_t parent_inode_idx = get_inode_idx_from_path(parent_path);
 	if (parent_inode_idx == -1)
 		return -1;
 
-	if (!es_de_tipo_directorio())
+	if (!S_ISDIR(inodes[parent_inode_idx].st.st_mode))
 		return -1;
 
-	dentry_t *parent_dentries = get_dentries_from_inode_index(parent_inode_idx);
-	
+	dentry_t *parent_dentries =
+	        get_dentries_from_inode_index(parent_inode_idx);
+
 	ssize_t dentry_idx = get_free_dentry_idx(parent_dentries);
 	if (dentry_idx == -1)
 		return -1;
@@ -272,9 +329,11 @@ fs_mkdir(const char *path)
 	strcpy(parent_dentries[dentry_idx].name, dentry_name);
 	parent_dentries[dentry_idx].inode_idx = new_inode_idx;
 
-	initialize_inode(new_inode_idx, new_block_index, parent_inode_idx);
-	initialize_directory_block(new_block_index, new_inode_idx, parent_inode_idx);
-	
+	initialize_directory(new_inode_idx, new_block_index, parent_inode_idx);
+
+	free(path_copy_1);
+	free(path_copy_2);
+
 	return 0;
 }
 
@@ -290,16 +349,19 @@ fs_unlink(const char *path)
 
 	inode_t *inode = &inodes[inode_idx];
 
-	if (!es_de_tipo_regular())
+	if (!S_ISREG(inode->st.st_mode))
 		return -1;
 
 	inodes_bitmap[inode_idx] = 0;
 	data_bitmap[inode->block_idx] = 0;
 
-	dentry_t *parent_dentries = get_dentries_from_inode_index(inode->parent_idx);
-	char *dentry_name = basename(path);
+	dentry_t *parent_dentries =
+	        get_dentries_from_inode_index(inode->parent_idx);
+
+	char *path_copy = strdup(path);
+	char *dentry_name = basename(path_copy);
 	remove_dentry_from_parent_directory(parent_dentries, dentry_name);
- 
+	free(path_copy);
 	return 0;
 }
 
@@ -315,21 +377,24 @@ fs_rmdir(const char *path)
 
 	inode_t *inode = &inodes[inode_idx];
 
-	if(!es_de_tipo_directorio())
+	if (!S_ISDIR(inode->st.st_mode))
 		return -1;
 
 	dentry_t *dentries = get_dentries_from_inode_index(inode_idx);
 
 	if (dentries[2].inode_idx != -1)
-		return -1; // Directory is not empty
+		return -1;  // Directory is not empty
 
 	inodes_bitmap[inode_idx] = 0;
 	data_bitmap[inode->block_idx] = 0;
 
-	dentry_t *parent_dentries = get_dentries_from_inode_index(inode->parent_idx);
-	char *dentry_name = basename(path);
-	remove_dentry_from_parent_directory(parent_dentries, dentry_name);
+	dentry_t *parent_dentries =
+	        get_dentries_from_inode_index(inode->parent_idx);
 
+	char *path_copy = strdup(path);
+	char *dentry_name = basename(path_copy);
+	remove_dentry_from_parent_directory(parent_dentries, dentry_name);
+	free(path_copy);
 	return 0;
 }
 
@@ -379,8 +444,8 @@ fs_read(const char *path, char *buffer, size_t size, off_t offset)
 	off_t file_size = inode->st.st_size;
 	char *data = blocks[inode->block_idx].data;
 
-	if (!es_de_tipo_regular())
-		return -1; 
+	if (!S_ISDIR(inode->st.st_mode))
+		return -1;
 
 	if (offset + size > file_size)
 		size = file_size - offset;
@@ -400,13 +465,13 @@ fs_write(const char *path, const char *buffer, size_t size, off_t offset)
 {
 	ssize_t inode_idx = get_inode_idx_from_path(path);
 	if (inode_idx == -1)
-		return -1; // Si no existe quizá podemos crearlo
+		return -1;  // Si no existe quizá podemos crearlo
 
 	inode_t *inode = &inodes[inode_idx];
 	char *data = blocks[inode->block_idx].data;
 
-	if (!es_de_tipo_regular())
-		return -1; 
+	if (!S_ISREG(inode->st.st_mode))
+		return -1;
 
 	if (offset + size > MAX_FILE_SIZE)
 		size = MAX_FILE_SIZE - offset;
@@ -430,13 +495,13 @@ fs_readdir(const char *path, void *buffer, off_t offset)
 	if (inode_idx == -1)
 		return -1;
 
-	if (!es_de_tipo_directorio())
-		return -1; 
+	if (!S_ISDIR(inodes[inode_idx].st.st_mode))
+		return -1;
 
 	dentry_t *dentries = get_dentries_from_inode_index(inode_idx);
 
 	if (offset >= MAX_DENTRIES || dentries[offset].inode_idx == -1)
-        return -1;
+		return -1;
 
 	strcpy(buffer, dentries[offset].name);
 
@@ -494,18 +559,22 @@ fs_destroy(const char *const restrict filepath)
 int
 fs_create(const char *path, mode_t mode)
 {
-	char *parent_path = dirname(path);
-	char *dentry_name = basename(path);
+	char *path_copy_1 = strdup(path);
+	char *path_copy_2 = strdup(path);
+
+	char *parent_path = dirname(path_copy_1);
+	char *dentry_name = basename(path_copy_2);
 
 	ssize_t parent_inode_idx = get_inode_idx_from_path(parent_path);
 	if (parent_inode_idx == -1)
 		return -1;
 
-	if (!es_de_tipo_directorio())
+	if (!S_ISDIR(inodes[parent_inode_idx].st.st_mode))
 		return -1;
 
-	dentry_t *parent_dentries = get_dentries_from_inode_index(parent_inode_idx);
-	
+	dentry_t *parent_dentries =
+	        get_dentries_from_inode_index(parent_inode_idx);
+
 	ssize_t dentry_idx = get_free_dentry_idx(parent_dentries);
 	if (dentry_idx == -1)
 		return -1;
@@ -521,9 +590,11 @@ fs_create(const char *path, mode_t mode)
 	strcpy(parent_dentries[dentry_idx].name, dentry_name);
 	parent_dentries[dentry_idx].inode_idx = new_inode_idx;
 
-	initialize_inode(new_inode_idx, new_block_index, parent_inode_idx);
-	initialize_file_block(new_block_index);
-	
+	initialize_file(new_inode_idx, new_block_index, parent_inode_idx);
+
+	free(path_copy_1);
+	free(path_copy_2);
+
 	return 0;
 }
 
