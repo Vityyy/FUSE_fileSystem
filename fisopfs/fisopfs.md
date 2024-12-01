@@ -52,3 +52,54 @@ recuperar el file system, se lee todo el contenido del archivo y se lo copia a l
 
 Cualquier dentry que no apunte a un inodo válido apunta a -1. Y a la hora de eliminar un dentry, se hace de forma
 ordenada para que recorrer la tabla de dentries de un inodo sea simplemente recorrer hasta el primer inodo inválido.
+
+## Pruebas
+
+### Crear archivo en directorio
+
+![img_6.png](img_6.png)
+
+### Crear archivo, escribir y appendear texto
+
+![img_7.png](img_7.png)
+
+### Crear directorio y archivo
+
+![img_8.png](img_8.png)
+
+### Directorios especiales
+
+![img_9.png](img_9.png)
+
+### Less
+
+![img_10.png](img_10.png)
+![img_11.png](img_11.png)
+
+### More
+
+![img_12.png](img_12.png)
+
+### Persistencia
+
+![img_15.png](img_15.png)
+
+### rm
+
+![img_13.png](img_13.png)
+
+### rmdir con contenido
+
+![img_14.png](img_14.png)
+
+### rmdir sin contenido
+
+![img_16.png](img_16.png)
+
+### Sobreescribir archivo
+
+![img_17.png](img_17.png)
+
+### stat
+
+![img_18.png](img_18.png)
