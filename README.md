@@ -1,6 +1,6 @@
 # fisopfs
 
-Repositorio para el esqueleto del [TP: filesystem](https://fisop.github.io/website/tps/filesystem) del curso Mendez-Fresia de **Sistemas Operativos (7508) - FIUBA**
+Repositorio para la solución del [TP: filesystem](https://fisop.github.io/website/tps/filesystem) del curso Mendez-Fresia de **Sistemas Operativos (7508) - FIUBA**
 
 > Sistema de archivos tipo FUSE.
 
