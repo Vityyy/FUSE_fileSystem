@@ -1,5 +1,4 @@
-**README available in English and Spanish**
-**README disponible en Inglés y en Español**
+**README** available in English and Spanish | **README** disponible en Inglés y en Español
 
 # fisopfs — FUSE-based Userspace Filesystem
 
