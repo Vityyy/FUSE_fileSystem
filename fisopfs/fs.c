@@ -149,18 +149,21 @@ void
 dentries_ordered_deletion(dentry_t *dentries, size_t delete_idx)
 {
 	size_t i;
-	for (i = delete_idx + 1; dentries[i].inode_idx != FREE_DENTRY && i < MAX_DENTRIES;
+	for (i = delete_idx + 1;
+	     dentries[i].inode_idx != FREE_DENTRY && i < MAX_DENTRIES;
 	     i++) {
 		strcpy(dentries[i - 1].name, dentries[i].name);
 		dentries[i - 1].inode_idx = dentries[i].inode_idx;
 	}
-	dentries[i - 1].inode_idx = FREE_DENTRY;  // Free the last one that was not free
+	dentries[i - 1].inode_idx =
+	        FREE_DENTRY;  // Free the last one that was not free
 }
 
 void
 remove_dentry_from_parent_directory(dentry_t *parent_dentries, char *dentry_name)
 {
-	for (size_t i = 2; parent_dentries[i].inode_idx != FREE_DENTRY && i < MAX_DENTRIES;
+	for (size_t i = 2;
+	     parent_dentries[i].inode_idx != FREE_DENTRY && i < MAX_DENTRIES;
 	     i++) {
 		if (strcmp(parent_dentries[i].name, dentry_name) == 0) {
 			dentries_ordered_deletion(parent_dentries, i);
@@ -420,7 +423,7 @@ fs_rmdir(const char *path)
 
 	dentry_t *dentries = get_dentries_from_inode_index(inode_idx);
 
-	if (dentries[2].inode_idx != -1) { // Directory is not empty
+	if (dentries[2].inode_idx != -1) {  // Directory is not empty
 		errno = ENOTEMPTY;
 		fprintf(stderr, "[debug] Error rmdir: %s\n", strerror(errno));
 		return -ENOTEMPTY;
@@ -665,7 +668,8 @@ fs_init(const char *const restrict filepath)
 {
 	const int fd = open(filepath, O_RDONLY);
 	if (fd < 0) {
-		printf("[debug] No existing filesystem, a new one is created\n");
+		printf("[debug] No existing filesystem, a new one is "
+		       "created\n");
 		new_file_system();
 		return NULL;
 	}
