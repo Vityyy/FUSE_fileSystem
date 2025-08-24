@@ -95,7 +95,7 @@ $ git commit -m "format: apply code formatter"
 
 ------------------------------------------------------------------------------------
 
-# Nota: Este proyecto fue desarrollado durante nuestro **tercer** año del programa de Ingeniería en Informática en la Universidad de Buenos Aires.
+## Nota: Este proyecto fue desarrollado durante nuestro **tercer** año del programa de Ingeniería en Informática en la Universidad de Buenos Aires.
 _Este repositorio **no** refleja nuestro nivel actual de programación ni nuestro set de skills profesionales. Se guarda aquí como un registro académico y de conocimiento.__
 
 # fisopfs — Sistema de archivos tipo FUSE
