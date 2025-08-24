@@ -5,6 +5,8 @@ _This repository **does not** reflect our current programming level or professio
 
 **README** available in English and Spanish | **README** disponible en Inglés y en Español
 
+------------------------------------------------------------------------------------
+
 # fisopfs — FUSE-based Userspace Filesystem
 
 This repository contains a `FUSE-style` userspace filesystem developed for the **Operating Systems (7508)** course at **FIUBA (Méndez–Fresia)** _(https://fisop.github.io/website/tps/filesystem)_. It mounts a test directory and persists the filesystem state to a single on-disk file, making it easy to build, run, and experiment locally or inside Docker.
@@ -97,6 +99,8 @@ $ git commit -m "format: apply code formatter"
 
 ## Nota: Este proyecto fue desarrollado durante nuestro **tercer** año del programa de Ingeniería en Informática en la Universidad de Buenos Aires.
 _Este repositorio **no** refleja nuestro nivel actual de programación ni nuestro set de skills profesionales. Se guarda aquí como un registro académico y de conocimiento.__
+
+------------------------------------------------------------------------------------
 
 # fisopfs — Sistema de archivos tipo FUSE
 
