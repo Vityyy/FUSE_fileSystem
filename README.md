@@ -1,4 +1,4 @@
-# Note: This project was developed during our **third** year of the Computer Engineering program at the University of Buenos Aires.
+## Note: This project was developed during our __third__ year of the Computer Engineering program at the University of Buenos Aires.
 _This repository **does not** reflect our current programming level or professional skills. It is kept here as an academic and knowledge record._
 
 ------------------------------------------------------------------------------------
