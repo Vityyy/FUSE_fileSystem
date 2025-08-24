@@ -1,3 +1,8 @@
+# Note: This project was developed during our **third** year of the Computer Engineering program at the University of Buenos Aires.
+_This repository **does not** reflect our current programming level or professional skills. It is kept here as an academic and knowledge record._
+
+------------------------------------------------------------------------------------
+
 **README** available in English and Spanish | **README** disponible en Inglés y en Español
 
 # fisopfs — FUSE-based Userspace Filesystem
@@ -90,7 +95,8 @@ $ git commit -m "format: apply code formatter"
 
 ------------------------------------------------------------------------------------
 
-
+# Nota: Este proyecto fue desarrollado durante nuestro **tercer** año del programa de Ingeniería en Informática en la Universidad de Buenos Aires.
+_Este repositorio **no** refleja nuestro nivel actual de programación ni nuestro set de skills profesionales. Se guarda aquí como un registro académico y de conocimiento.__
 
 # fisopfs — Sistema de archivos tipo FUSE
 
