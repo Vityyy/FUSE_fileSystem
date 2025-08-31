@@ -1,186 +1,147 @@
-## Note: This project was developed during our __third__ year of the Computer Engineering program at the University of Buenos Aires.
-_This repository **does not** reflect our current programming level or professional skills. It is kept here as an academic and knowledge record._
+# 🗂️ FUSE FileSystem
 
-------------------------------------------------------------------------------------
-
-**README** available in English and Spanish | **README** disponible en Inglés y en Español
-
-------------------------------------------------------------------------------------
-
-# fisopfs — FUSE-based Userspace Filesystem
-
-This repository contains a `FUSE-style` userspace filesystem developed for the **Operating Systems (7508)** course at **FIUBA (Méndez–Fresia)** _(https://fisop.github.io/website/tps/filesystem)_. It mounts a test directory and persists the filesystem state to a single on-disk file, making it easy to build, run, and experiment locally or inside Docker.
-
-> Tech overview: primarily Python with some C components; build and run are driven by a Makefile.  
-> Requires a Linux environment with FUSE available.
+<div align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/FUSE-FF6B35?style=for-the-badge&logo=linux&logoColor=white" />
+  <img src="https://img.shields.io/badge/Operating_Systems-2E8B57?style=for-the-badge&logo=linux&logoColor=white" />
+</div>
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif">
+</div>
 
 
-## Theoretical answers
+> **📚 Academic Project Notice**  
+> This project was developed during our **third year** of the Computer Engineering program at the University of Buenos Aires. _This repository **does not** reflect our current programming level or professional skills. It is kept here as an academic and knowledge record._
 
-Use the `fisopfs.md` file provided in the repository.
+---
 
-## Compile
+## 🤖 About
 
+**fisopfs** is a custom **FUSE-based userspace filesystem** developed for the **Operating Systems (7508)** course at **FIUBA (Méndez–Fresia)**. This filesystem implementation mounts a test directory and persists all filesystem state to a single on-disk file, enabling easy local development and Docker experimentation.
+
+### 🎯 Key Features
+- **Userspace Implementation** using FUSE (Filesystem in Userspace)
+- **Persistent Storage** to single on-disk file
+- **Docker support**
+- **Hybrid Architecture** combining Python flexibility with C performance
+
+### 🔧 Tech Stack
+- **Primary**: Python for main filesystem logic
+- **Supplemental**: C components for performance-critical operations
+- **Build System**: Makefile-driven compilation and execution
+- **Environment**: Linux with FUSE support required
+
+---
+
+## 📋 Prerequisites
+
+- **Linux Environment** with FUSE available
+- **Python** and **C** development tools
+- **Make** build system
+- **Docker** (optional, for containerized testing)
+
+---
+
+## 🛠️ Quick Start
+
+### Compilation
 ```bash
 $ make
 ```
 
-## Run
-
-### Setup
-
-First, create a test directory:
-
+### Setup Test Environment
+Create your test directory:
 ```bash
 $ mkdir prueba
 ```
 
-### Start the FUSE server
-
-From the same directory where the solution was compiled, execute:
-
+### Launch FUSE Server
+Start the filesystem from the compilation directory:
 ```bash
 $ ./fisopfs prueba/
 ```
 
-There is a `--filedisk NAME` flag to specify which file should be used
-as the on-disk persistence file. The default is "persistence_file.fisopfs":
-
+**Custom persistence file** (optional):
 ```bash
-$ ./fisopfs prueba/ --filedisk nuevo_disco.fisopfs
+$ ./fisopfs prueba/ --filedisk custom_disk.fisopfs
 ```
+> Default persistence file: `persistence_file.fisopfs`
 
-### Verify mount
-
+### Verify Mount
+Confirm the filesystem is properly mounted:
 ```bash
 $ mount | grep fisopfs
 ```
 
-### Use the "test" directory
-
-Open another terminal and execute:
-
+### Test the Filesystem
+Open a new terminal and interact with your mounted filesystem:
 ```bash
 $ cd prueba
 $ ls -al
+# Create files, directories, test filesystem operations
 ```
 
 ### Cleanup
-
+Unmount when finished:
 ```bash
 $ sudo umount prueba
 ```
 
-## Docker
+---
 
-There are three _targets_ in the `Makefile` to work with _Docker_:
-- `docker-build`: builds an "Ubuntu 20.04" image with FUSE dependencies.
-- `docker-run`: creates a _container_ based on the previous image and runs `bash`.
-   - here you can run `make` and then `./fisopfs -f ./prueba`.
-- `docker-attach`: attach to the same previous container for iterative testing.
-   - here you can navigate to the `prueba` directory inside.
+## 🐳 Docker Development
 
-## Linter
+The project includes three Docker targets for easy development:
 
+| Command | Description |
+|---------|-------------|
+| `docker-build` | Creates Ubuntu 20.04 image with FUSE dependencies |
+| `docker-run` | Launches container with bash shell |
+| `docker-attach` | Attaches to existing container for testing |
+
+### Docker Workflow
+```bash
+# Build the development environment
+$ make docker-build
+
+# Run container and compile
+$ make docker-run
+# Inside container:
+$ make
+$ ./fisopfs -f ./prueba
+
+# In another terminal, attach for testing
+$ make docker-attach
+# Navigate to prueba directory and test filesystem
+```
+
+---
+
+### 📖 Theoretical Component
+Theoretical answers _(for the assignature Operating Systems (7508), Méndez–Fresia)_ and documentation are available in the `fisopfs.md` file included in this repository.  
+
+---
+
+## 🔧 Development Tools
+
+### Code Formatting
+Apply consistent code formatting:
 ```bash
 $ make format
 ```
 
-To commit the formatting changes:
-
+Commit formatting changes:
 ```bash
 $ git add .
 $ git commit -m "format: apply code formatter"
 ```
 
+---
 
-
-------------------------------------------------------------------------------------
-
-## Nota: Este proyecto fue desarrollado durante nuestro **tercer** año del programa de Ingeniería en Informática en la Universidad de Buenos Aires.
-_Este repositorio **no** refleja nuestro nivel actual de programación ni nuestro set de skills profesionales. Se guarda aquí como un registro académico y de conocimiento.__
-
-------------------------------------------------------------------------------------
-
-# fisopfs — Sistema de archivos tipo FUSE
-
-Este repositorio contiene un sistema de archivos tipo `FUSE` desarrollado para la materia **Sistemas Operativos (7508) en FIUBA (Méndez–Fresia)** _(https://fisop.github.io/website/tps/filesystem)_. Monta un directorio de prueba y persiste el estado del sistema de archivos en un único archivo en disco, lo que facilita compilar, ejecutar y experimentar localmente o dentro de Docker.
-
-> Descripción técnica: principalmente Python con algunos componentes en C; la compilación y ejecución se realizan mediante un Makefile.
-> Requiere un entorno Linux con FUSE disponible.
-
-
-## Respuestas teóricas
-
-Utilizar el archivo `fisopfs.md` provisto en el repositorio
-
-## Compilar
-
-```bash
-$ make
-```
-
-## Ejecutar
-
-### Setup
-
-Primero hay que crear un directorio de prueba:
-
-```bash
-$ mkdir prueba
-```
-
-### Iniciar el servidor FUSE
-
-En el mismo directorio que se utilizó para compilar la solución, ejectuar:
-
-```bash
-$ ./fisopfs prueba/
-```
-
-Hay una flag `--filedisk NAME` para indicar que archivo se
- quiere utilizar como archivo de persistencia en disco. 
- El valor por defecto es "persistence_file.fisopfs"
-
-```bash
-$ ./fisopfs prueba/ --filedisk nuevo_disco.fisopfs
-```
-
-### Verificar directorio
-
-```bash
-$ mount | grep fisopfs
-```
-
-### Utilizar el directorio de "pruebas"
-
-En otra terminal, ejecutar:
-
-```bash
-$ cd prueba
-$ ls -al
-```
-
-### Limpieza
-
-```bash
-$ sudo umount prueba
-```
-
-## Docker
-
-Existen tres _targets_ en el archivo `Makefile` para utilizar _docker_.
-
-- `docker-build`: genera la imagen basada en "Ubuntu 20.04" con las dependencias de FUSE
-- `docker-run`: crea un _container_ basado en la imagen anterior ejecutando `bash`
-   - acá se puede ejecutar `make` y luego `./fisopfs -f ./prueba`
-- `docker-attach`: permite vincularse al mismo _container_ anterior para poder realizar pruebas
-   - acá se puede ingresar al directorio `prueba`
-
-## Linter
-
-```bash
-$ make format
-```
-
-Para efectivamente subir los cambios producidos por el `format`, hay que usar `git add .` y `git commit`.
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif">
+  
+  **Built with 🐍 Python &⚡C at Universidad de Buenos Aires**
+</div>
