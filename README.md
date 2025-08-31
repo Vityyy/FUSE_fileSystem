@@ -120,7 +120,7 @@ $ make docker-attach
 ---
 
 ### 📖 Theoretical Component
-Theoretical answers _(for the assignature Operating Systems (7508), Méndez–Fresia)_ and documentation are available in the `fisopfs.md` file included in this repository.  
+Theoretical answers and documentation are available in the `fisopfs.md` file included in this repository.  
 
 ---
 
